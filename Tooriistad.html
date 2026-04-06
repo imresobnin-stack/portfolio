@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tekstitööriistad</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #fafaf9;
+    --bg2: #f0efed;
+    --fg: #1a1a1a;
+    --fg2: #6b6b6b;
+    --accent: #2d5a27;
+    --accent-light: #e8f0e7;
+    --border: #ddd;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --font-body: 'Outfit', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --green-add: rgba(45, 90, 39, 0.15);
+    --red-remove: rgba(180, 40, 40, 0.15);
+    --yellow-fmt: rgba(200, 160, 0, 0.15);
+    --blue-fmt: rgba(40, 100, 180, 0.15);
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ─── TOP BAR ─── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+  .topbar-back {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--fg2);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .topbar-back:hover { border-color: var(--accent); color: var(--accent); }
+  .topbar-back.visible { display: flex; }
+  .topbar-back svg { width: 14px; height: 14px; }
+
+  /* ─── MAIN MENU ─── */
+  .menu-wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+  .menu-heading {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+  .menu-sub {
+    color: var(--fg2);
+    font-size: 1rem;
+    font-weight: 300;
+    margin-bottom: 48px;
+  }
+  .menu-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .menu-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 28px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: var(--shadow);
+  }
+  .menu-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  .menu-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: var(--accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.3rem;
+  }
+  .menu-card-text h3 {
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .menu-card-text p {
+    font-size: 0.85rem;
+    color: var(--fg2);
+    font-weight: 300;
+  }
+  .menu-card-arrow {
+    margin-left: auto;
+    color: var(--fg2);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .menu-card:hover .menu-card-arrow { opacity: 1; }
+
+  /* ─── TOOL VIEWS ─── */
+  .tool-view {
+    display: none;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+  .tool-view.active { display: block; }
+  .tool-view h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .tool-desc {
+    color: var(--fg2);
+    font-size: 0.9rem;
+    font-weight: 300;
+    margin-bottom: 28px;
+  }
+
+  /* ─── SHARED UI COMPONENTS ─── */
+  .file-drop {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 36px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+    position: relative;
+  }
+  .file-drop:hover, .file-drop.dragover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .file-drop.has-file {
+    border-color: var(--accent);
+    border-style: solid;
+  }
+  .file-drop input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .file-drop-label {
+    color: var(--fg2);
+    font-size: 0.9rem;
+  }
+  .file-drop-label strong {
+    color: var(--accent);
+  }
+  .file-drop-name {
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 22px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .btn-outline {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-row { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+
+  .output-area {
+    width: 100%;
+    min-height: 260px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    resize: vertical;
+    color: var(--fg);
+  }
+  .output-pre {
+    width: 100%;
+    min-height: 200px;
+    max-height: 70vh;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+
+  /* ─── TOOL 1: PUHASTA ─── */
+  /* (uses shared components) */
+
+  /* ─── TOOL 2: OTSI ─── */
+  #otsi-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .id-tag {
+    padding: 5px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: #fff;
+    transition: all 0.15s;
+  }
+  .id-tag:hover { transform: scale(1.04); }
+  .found-id {
+    font-weight: 500;
+    padding: 0 2px;
+    border-radius: 3px;
+  }
+  .jump-highlight {
+    background-color: rgba(45, 90, 39, 0.35) !important;
+    color: #000 !important;
+    box-shadow: 0 0 6px rgba(45, 90, 39, 0.4);
+  }
+  .otsi-ok {
+    padding: 14px 20px;
+    background: var(--accent-light);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ─── TOOL 3: VÕRDLE ─── */
+  .vordle-uploads {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 640px) { .vordle-uploads { grid-template-columns: 1fr; } }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-card h4 {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--fg2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .stat-card .value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    justify-content: center;
+  }
+  .toggle-btn {
+    padding: 8px 18px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--fg2);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    transition: all 0.2s;
+  }
+  .toggle-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .side-by-side {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 768px) { .side-by-side { grid-template-columns: 1fr; } }
+
+  .doc-panel {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    max-height: 550px;
+    overflow-y: auto;
+  }
+  .doc-panel h3 {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--fg2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .paragraph {
+    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 6px;
+    line-height: 1.65;
+    font-size: 0.88rem;
+  }
+  .paragraph:hover { background: var(--bg2); }
+  .paragraph.unchanged { color: var(--fg2); opacity: 0.55; }
+
+  .text-bold { font-weight: bold; }
+  .text-italic { font-style: italic; }
+  .text-underline { text-decoration: underline; }
+  .text-super { vertical-align: super; font-size: 0.8em; }
+  .text-sub { vertical-align: sub; font-size: 0.8em; }
+
+  .change-added, .change-text-added { background: rgba(34, 139, 34, 0.18); color: #1a6e1a; padding: 1px 3px; border-radius: 3px; }
+  .change-removed, .change-text-removed { background: rgba(200, 30, 30, 0.15); color: #a02020; padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
+  .change-bold-added { background: var(--yellow-fmt); padding: 1px 3px; border-radius: 3px; }
+  .change-bold-removed { background: var(--yellow-fmt); padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
+  .change-italic-added { background: var(--blue-fmt); padding: 1px 3px; border-radius: 3px; }
+  .change-italic-removed { background: var(--blue-fmt); padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
+  .change-super-added { background: rgba(180, 40, 140, 0.15); padding: 1px 3px; border-radius: 3px; }
+  .change-super-removed { background: rgba(180, 40, 140, 0.15); padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
+  .change-sub-added { background: rgba(100, 40, 180, 0.15); padding: 1px 3px; border-radius: 3px; }
+  .change-sub-removed { background: rgba(100, 40, 180, 0.15); padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
+
+  .paragraph.current-diff {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    background: var(--accent-light) !important;
+  }
+
+  .unified-view {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    max-height: 550px;
+    overflow-y: auto;
+  }
+
+  .vordle-loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--fg2);
+  }
+
+  /* ─── TOOL 4: XML ID ─── */
+  .xmlid-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 640px) { .xmlid-panels { grid-template-columns: 1fr; } }
+  .xmlid-panel {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .xmlid-panel-header {
+    padding: 8px 14px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--fg2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .xmlid-badge {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+  .xmlid-badge.warn { background: #fff3e0; color: #c77c00; }
+  .xmlid-panel textarea,
+  .xmlid-panel pre {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 14px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: var(--fg);
+    resize: none;
+    min-height: 260px;
+    white-space: pre;
+    overflow: auto;
+  }
+  .xmlid-panel pre { word-break: break-all; white-space: pre-wrap; }
+  .xmlid-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--fg2);
+    margin-bottom: 12px;
+  }
+  .xmlid-stat { display: flex; flex-direction: column; gap: 2px; }
+  .xmlid-stat-val { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+  .xmlid-stat-val.warn { color: #c77c00; }
+  .xmlid-log {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .xmlid-log-area {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.8;
+    padding: 14px;
+    color: #c77c00;
+    min-height: 80px;
+    overflow: auto;
+    white-space: pre-wrap;
+  }
+  .xmlid-empty {
+    color: var(--fg2);
+    font-style: italic;
+    font-size: 0.82rem;
+    padding: 14px;
+    font-family: var(--font-mono);
+  }
+
+  /* ─── TOOL 5: BASE64 ─── */
+  .b64-progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .b64-progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--bg2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .b64-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.2s;
+  }
+  .b64-progress-text {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--fg2);
+    min-width: 40px;
+  }
+  .b64-info {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--fg);
+  }
+
+  /* ─── FADE IN ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .tool-view.active { animation: fadeUp 0.3s ease-out; }
+  .menu-wrapper { animation: fadeUp 0.4s ease-out; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <span class="topbar-title">Tekstitööriistad</span>
+  <button class="topbar-back" id="backBtn" onclick="showMenu()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Tagasi
+  </button>
+</div>
+
+<!-- MAIN MENU -->
+<div class="menu-wrapper" id="mainMenu">
+  <h1 class="menu-heading">Tekstitööriistad</h1>
+  <p class="menu-sub">Vali tööriist, mida soovid kasutada.</p>
+  <div class="menu-cards">
+    <div class="menu-card" onclick="showTool('puhasta')">
+      <div class="menu-card-icon">🧹</div>
+      <div class="menu-card-text">
+        <h3>Puhasta HTML</h3>
+        <p>Eemalda Word HTML-ist üleliigsed stiilid ja tagid</p>
+      </div>
+      <span class="menu-card-arrow">→</span>
+    </div>
+    <div class="menu-card" onclick="showTool('otsi')">
+      <div class="menu-card-icon">🔍</div>
+      <div class="menu-card-text">
+        <h3>Otsi ID duplikaate</h3>
+        <p>Leia failist korduvad id-atribuudid</p>
+      </div>
+      <span class="menu-card-arrow">→</span>
+    </div>
+    <div class="menu-card" onclick="showTool('vordle')">
+      <div class="menu-card-icon">⚖️</div>
+      <div class="menu-card-text">
+        <h3>Võrdle dokumente</h3>
+        <p>Kõrvuta kahte faili (.docx, .txt, .html, .xml, .akt) sõnahaaval</p>
+      </div>
+      <span class="menu-card-arrow">→</span>
+    </div>
+    <div class="menu-card" onclick="showTool('xmlid')">
+      <div class="menu-card-icon">🏷️</div>
+      <div class="menu-card-text">
+        <h3>Lisa XML ID-d</h3>
+        <p>Lisa ja paranda paragrahvide, lõigete ja alampunktide ID-d</p>
+      </div>
+      <span class="menu-card-arrow">→</span>
+    </div>
+    <div class="menu-card" onclick="showTool('base64')">
+      <div class="menu-card-icon">🔐</div>
+      <div class="menu-card-text">
+        <h3>Base64 kodeerija</h3>
+        <p>Kodeeri mis tahes fail Base64 formaati</p>
+      </div>
+      <span class="menu-card-arrow">→</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOOL 1: PUHASTA -->
+<div class="tool-view" id="tool-puhasta">
+  <h2>Puhasta HTML</h2>
+  <p class="tool-desc">Lae üles Word HTML fail (.htm/.html). Eemaldatakse stiilid, atribuudid ja üleliigsed tagid.</p>
+
+  <div class="file-drop" id="puhasta-drop">
+    <input type="file" id="puhasta-file" accept=".htm,.html">
+    <p class="file-drop-label">Klõpsa või lohista <strong>.htm / .html</strong> fail siia</p>
+    <p class="file-drop-name" id="puhasta-fname"></p>
+  </div>
+
+  <div class="btn-row" style="align-items:center;">
+    <button class="btn" id="puhasta-btn" onclick="puhastaClean()" disabled>Puhasta</button>
+    <button class="btn btn-outline" id="puhasta-dl" onclick="puhastaDownload()" disabled>Lae alla</button>
+    <label style="display:inline-flex;align-items:center;gap:6px;margin-left:12px;font-size:0.85rem;color:var(--fg2);cursor:pointer;user-select:none;">
+      <input type="checkbox" id="puhasta-removeLinks" checked style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer;">
+      Eemalda lingid
+    </label>
+  </div>
+
+  <textarea class="output-area" id="puhasta-output" readonly placeholder="Tulemus ilmub siia..."></textarea>
+</div>
+
+<!-- TOOL 2: OTSI -->
+<div class="tool-view" id="tool-otsi">
+  <h2>Otsi ID duplikaate</h2>
+  <p class="tool-desc">Lae üles fail ja vaata, kas leidub korduvaid <code>id</code> atribuute.</p>
+
+  <div class="file-drop" id="otsi-drop">
+    <input type="file" id="otsi-file">
+    <p class="file-drop-label">Klõpsa või lohista fail siia</p>
+    <p class="file-drop-name" id="otsi-fname"></p>
+  </div>
+
+  <div id="otsi-summary" style="margin-top:20px;"></div>
+  <div class="output-pre" id="otsi-output" style="display:none;"></div>
+</div>
+
+<!-- TOOL 3: VÕRDLE -->
+<div class="tool-view" id="tool-vordle">
+  <h2>Võrdle dokumente</h2>
+  <p class="tool-desc">Lae üles kaks faili ja võrdle neid sõnahaaval. Toetab .docx, .txt, .html, .xml, .akt jm tekstifaile.</p>
+
+  <div class="vordle-uploads">
+    <div class="file-drop" id="vordle-drop1">
+      <input type="file" id="vordle-file1" accept=".docx,.txt,.html,.htm,.xml,.akt">
+      <p class="file-drop-label"><strong>Dokument 1</strong> — .docx / .txt / .html / .xml / .akt</p>
+      <p class="file-drop-name" id="vordle-fname1"></p>
+    </div>
+    <div class="file-drop" id="vordle-drop2">
+      <input type="file" id="vordle-file2" accept=".docx,.txt,.html,.htm,.xml,.akt">
+      <p class="file-drop-label"><strong>Dokument 2</strong> — .docx / .txt / .html / .xml / .akt</p>
+      <p class="file-drop-name" id="vordle-fname2"></p>
+    </div>
+  </div>
+
+  <div class="btn-row" style="justify-content:center;">
+    <button class="btn" id="vordle-btn" onclick="vordleCompare()" disabled>Võrdle</button>
+    <button class="btn btn-outline" id="vordle-nextDiff" onclick="vordleNextDiff()" style="display:none;">Näita muutuseid ↓</button>
+  </div>
+
+  <div id="vordle-results"></div>
+</div>
+
+
+<!-- TOOL 4: XML ID -->
+<div class="tool-view" id="tool-xmlid">
+  <h2>Lisa XML ID-d</h2>
+  <p class="tool-desc">Lae üles XML-fail või kleebi sisu. Lisatakse paragrahvide, lõigete ja alampunktide ID-d.</p>
+
+  <div class="file-drop" id="xmlid-drop">
+    <input type="file" id="xmlid-file" accept=".xml,.txt">
+    <p class="file-drop-label">Klõpsa või lohista <strong>.xml / .txt</strong> fail siia</p>
+    <p class="file-drop-name" id="xmlid-fname"></p>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" id="xmlid-processBtn" onclick="xmlidProcess()">Töötle</button>
+    <button class="btn btn-outline" id="xmlid-dlBtn" onclick="xmlidDownload()" disabled>Lae alla</button>
+    <button class="btn btn-outline" onclick="xmlidClear()">Puhasta</button>
+  </div>
+
+  <div class="xmlid-panels">
+    <div class="xmlid-panel">
+      <div class="xmlid-panel-header">
+        <span>Sisend</span>
+        <span class="xmlid-badge" id="xmlid-inBadge">—</span>
+      </div>
+      <textarea id="xmlid-input" placeholder="või kleebi XML sisu siia..."></textarea>
+    </div>
+    <div class="xmlid-panel">
+      <div class="xmlid-panel-header">
+        <span>Väljund</span>
+        <span class="xmlid-badge" id="xmlid-outBadge">—</span>
+      </div>
+      <pre id="xmlid-output"><span class="xmlid-empty">Tulemus ilmub siia...</span></pre>
+    </div>
+  </div>
+
+  <div class="xmlid-stats" id="xmlid-stats" style="display:none">
+    <div class="xmlid-stat"><span class="xmlid-stat-val" id="xmlid-sPara">0</span><span>paragrahve</span></div>
+    <div class="xmlid-stat"><span class="xmlid-stat-val" id="xmlid-sLoige">0</span><span>lõikeid</span></div>
+    <div class="xmlid-stat"><span class="xmlid-stat-val" id="xmlid-sAlam">0</span><span>alampunkte</span></div>
+    <div class="xmlid-stat"><span class="xmlid-stat-val warn" id="xmlid-sWarn">0</span><span>hoiatust</span></div>
+  </div>
+
+  <div class="xmlid-log" id="xmlid-logPanel" style="display:none">
+    <div class="xmlid-panel-header">
+      <span>Logi</span>
+      <span class="xmlid-badge warn" id="xmlid-logBadge">0 kirjet</span>
+    </div>
+    <div class="xmlid-log-area" id="xmlid-logArea"></div>
+  </div>
+</div>
+
+
+<!-- TOOL 5: BASE64 -->
+<div class="tool-view" id="tool-base64">
+  <h2>Base64 kodeerija</h2>
+  <p class="tool-desc">Lae üles fail ja kodeeri see Base64 formaati. Tulemus salvestatakse .b64 failina.</p>
+
+  <div class="file-drop" id="base64-drop">
+    <input type="file" id="base64-file">
+    <p class="file-drop-label">Klõpsa või lohista <strong>mis tahes fail</strong> siia</p>
+    <p class="file-drop-name" id="base64-fname"></p>
+  </div>
+
+  <div class="btn-row" style="align-items:center;">
+    <button class="btn" id="base64-btn" onclick="base64Encode()" disabled>Kodeeri</button>
+    <button class="btn btn-outline" id="base64-dlBtn" onclick="base64Download()" disabled>Lae alla (.b64)</button>
+  </div>
+
+  <div class="b64-progress-wrap" id="base64-progressWrap" style="display:none;">
+    <div class="b64-progress-bar"><div class="b64-progress-fill" id="base64-progressFill"></div></div>
+    <span class="b64-progress-text" id="base64-progressText">0%</span>
+  </div>
+
+  <div class="b64-info" id="base64-info" style="display:none;"></div>
+</div>
+
+
+<script>
+// ═════════════════════════════════════════════
+// NAVIGATION
+// ═════════════════════════════════════════════
+function showMenu() {
+  document.getElementById('mainMenu').style.display = '';
+  document.querySelectorAll('.tool-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('backBtn').classList.remove('visible');
+  // Reset state on return
+}
+
+function showTool(id) {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.querySelectorAll('.tool-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('tool-' + id).classList.add('active');
+  document.getElementById('backBtn').classList.add('visible');
+}
+
+// ═════════════════════════════════════════════
+// FILE DROP HELPERS
+// ═════════════════════════════════════════════
+function setupFileDrop(dropId, inputId, fnameId, onChange) {
+  const drop = document.getElementById(dropId);
+  const input = document.getElementById(inputId);
+  const fname = document.getElementById(fnameId);
+
+  input.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    fname.textContent = '✓ ' + file.name;
+    drop.classList.add('has-file');
+    if (onChange) onChange(file);
+  });
+
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault();
+    drop.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+}
+
+// ═════════════════════════════════════════════
+// TOOL 1: PUHASTA
+// ═════════════════════════════════════════════
+let puhastaOriginal = '';
+let puhastaCleaned = '';
+
+setupFileDrop('puhasta-drop', 'puhasta-file', 'puhasta-fname', function(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    puhastaOriginal = e.target.result;
+    document.getElementById('puhasta-btn').disabled = false;
+  };
+  reader.readAsText(file, 'windows-1257');
+});
+
+function puhastaClean() {
+  if (!puhastaOriginal) return;
+
+  let safeHTML = puhastaOriginal
+    .replace(/<meta[^>]*>/gi, '')
+    .replace(/<!DOCTYPE[^>]*>/gi, '')
+    .replace(/<html[^>]*>/gi, '')
+    .replace(/<\/html>/gi, '')
+    .replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
+
+  const template = document.createElement('template');
+  template.innerHTML = safeHTML;
+  const root = template.content;
+
+  root.querySelectorAll('style').forEach(el => el.remove());
+  for (let i = 1; i <= 6; i++) {
+    root.querySelectorAll('h' + i).forEach(h => {
+      const p = document.createElement('p');
+      p.innerHTML = h.innerHTML;
+      h.replaceWith(p);
+    });
+  }
+  root.querySelectorAll('span').forEach(s => s.replaceWith(...s.childNodes));
+  const removeLinks = document.getElementById('puhasta-removeLinks').checked;
+  if (removeLinks) {
+    root.querySelectorAll('a').forEach(a => a.replaceWith(...a.childNodes));
+  }
+  root.querySelectorAll('*').forEach(el => {
+    const tag = el.tagName.toLowerCase();
+    // Jäta <a> tagide atribuudid puutumata kui linke ei eemaldata
+    if (tag === 'a' && !removeLinks) return;
+    // Salvesta colspan/rowspan enne atribuutide eemaldamist
+    const colspan = (tag === 'td' || tag === 'th') ? el.getAttribute('colspan') : null;
+    const rowspan = (tag === 'td' || tag === 'th') ? el.getAttribute('rowspan') : null;
+    [...el.attributes].forEach(attr => el.removeAttribute(attr.name));
+    // Taasta colspan/rowspan
+    if (colspan) el.setAttribute('colspan', colspan);
+    if (rowspan) el.setAttribute('rowspan', rowspan);
+    // Lisa table-le class="data"
+    if (tag === 'table') el.setAttribute('class', 'data');
+  });
+
+  root.querySelectorAll('p').forEach(p => {
+    p.querySelectorAll('br').forEach(br => br.replaceWith(document.createTextNode(' ')));
+    p.innerHTML = p.innerHTML.replace(/\s*\n\s*/g, ' ').replace(/\s+/g, ' ').trim();
+  });
+
+  root.querySelectorAll('sup, sub').forEach(el => {
+    el.textContent = el.textContent.trim();
+  });
+
+  const allowed = ['p', 'table', 'tr', 'td', 'b', 'i', 'sup', 'sub', 'u'];
+  if (!removeLinks) allowed.push('a');
+  function cleanNode(node) {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      if (!allowed.includes(node.tagName.toLowerCase())) {
+        node.replaceWith(...node.childNodes);
+        return;
+      }
+    }
+    [...node.childNodes].forEach(cleanNode);
+  }
+  cleanNode(root);
+
+  root.querySelectorAll('p').forEach(p => {
+    if (p.textContent.trim() === '') p.remove();
+  });
+
+  const div = document.createElement('div');
+  div.appendChild(root.cloneNode(true));
+  puhastaCleaned = div.innerHTML.replace(/\n\s*\n/g, '\n').replace(/<br>/gi, '<br />').trim();
+
+  document.getElementById('puhasta-output').value = puhastaCleaned;
+  document.getElementById('puhasta-dl').disabled = false;
+}
+
+function puhastaDownload() {
+  if (!puhastaCleaned) return;
+  const blob = new Blob([puhastaCleaned], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cleaned.html';
+  a.click();
+}
+
+// ═════════════════════════════════════════════
+// TOOL 2: OTSI
+// ═════════════════════════════════════════════
+setupFileDrop('otsi-drop', 'otsi-file', 'otsi-fname', function(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) { otsiProcess(e.target.result); };
+  reader.readAsText(file);
+});
+
+function otsiProcess(text) {
+  const output = document.getElementById('otsi-output');
+  const summary = document.getElementById('otsi-summary');
+
+  let safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const regex = /id\s*=\s*(["'])(.*?)\1/gi;
+  const counts = {};
+  let match;
+  while ((match = regex.exec(safeText)) !== null) {
+    counts[match[2]] = (counts[match[2]] || 0) + 1;
+  }
+
+  const duplicates = Object.keys(counts).filter(k => counts[k] > 1);
+
+  if (duplicates.length === 0) {
+    summary.innerHTML = '<div class="otsi-ok">Korduvaid ID-sid ei leitud!</div>';
+    output.style.display = 'block';
+    output.innerHTML = safeText;
+    return;
+  }
+
+  summary.innerHTML = '';
+  const colorMap = {};
+  duplicates.forEach((id, i) => {
+    const hue = (i * 137.5) % 360;
+    colorMap[id] = `hsl(${hue}, 55%, 45%)`;
+
+    const btn = document.createElement('button');
+    btn.className = 'id-tag';
+    btn.style.borderBottom = '3px solid ' + colorMap[id];
+    btn.innerText = id + ' (' + counts[id] + 'x)';
+    btn.onclick = () => {
+      const els = document.querySelectorAll(`[data-id="${CSS.escape(id)}"]`);
+      if (els.length > 0) {
+        els[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        els.forEach(el => {
+          el.classList.add('jump-highlight');
+          setTimeout(() => el.classList.remove('jump-highlight'), 1500);
+        });
+      }
+    };
+    summary.appendChild(btn);
+  });
+
+  const highlighted = safeText.replace(/id\s*=\s*(["'])(.*?)\1/gi, (full, quote, idVal) => {
+    if (colorMap[idVal]) {
+      return `<span data-id="${idVal}" class="found-id" style="color:${colorMap[idVal]}; border-bottom: 2px solid ${colorMap[idVal]}">${full}</span>`;
+    }
+    return full;
+  });
+
+  output.style.display = 'block';
+  output.innerHTML = highlighted;
+}
+
+// ═════════════════════════════════════════════
+// TOOL 3: VÕRDLE
+// ═════════════════════════════════════════════
+let vordleFile1 = null, vordleFile2 = null;
+
+setupFileDrop('vordle-drop1', 'vordle-file1', 'vordle-fname1', f => { vordleFile1 = f; checkVordleReady(); });
+setupFileDrop('vordle-drop2', 'vordle-file2', 'vordle-fname2', f => { vordleFile2 = f; checkVordleReady(); });
+
+function checkVordleReady() {
+  document.getElementById('vordle-btn').disabled = !(vordleFile1 && vordleFile2);
+}
+
+async function parseDocxXml(file) {
+  const zip = await JSZip.loadAsync(file);
+  const docXml = await zip.file('word/document.xml').async('string');
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(docXml, 'text/xml');
+  const paragraphs = [];
+  const pElements = xmlDoc.getElementsByTagName('w:p');
+
+  for (let p of pElements) {
+    const runs = p.getElementsByTagName('w:r');
+    let text = '';
+    const runData = [];
+
+    for (let run of runs) {
+      const rPr = run.getElementsByTagName('w:rPr')[0];
+      const tElements = run.getElementsByTagName('w:t');
+      let fmt = { bold: false, italic: false, underline: false, superscript: false, subscript: false };
+
+      if (rPr) {
+        fmt.bold = rPr.getElementsByTagName('w:b').length > 0;
+        fmt.italic = rPr.getElementsByTagName('w:i').length > 0;
+        fmt.underline = rPr.getElementsByTagName('w:u').length > 0;
+        const va = rPr.getElementsByTagName('w:vertAlign')[0];
+        if (va) {
+          const val = va.getAttribute('w:val');
+          fmt.superscript = val === 'superscript';
+          fmt.subscript = val === 'subscript';
+        }
+      }
+
+      for (let t of tElements) {
+        const rt = t.textContent;
+        text += rt;
+        runData.push({ text: rt, format: fmt });
+      }
+    }
+
+    if (text.trim()) paragraphs.push({ text: text.trim(), runs: runData });
+  }
+  return paragraphs;
+}
+
+function tokenizeWithFormat(runs) {
+  const tokens = [];
+  runs.forEach(run => {
+    run.text.split(/(\s+)/).forEach(part => {
+      if (part) tokens.push({ text: part, format: run.format, isSpace: /^\s+$/.test(part) });
+    });
+  });
+  return tokens;
+}
+
+function detectFormatChange(f1, f2) {
+  const ch = { added: null, removed: null };
+  if (f1.bold !== f2.bold) { ch.added = f2.bold ? 'bold-added' : null; ch.removed = f1.bold ? 'bold-removed' : null; }
+  if (f1.italic !== f2.italic) { ch.added = ch.added || (f2.italic ? 'italic-added' : null); ch.removed = ch.removed || (f1.italic ? 'italic-removed' : null); }
+  if (f1.superscript !== f2.superscript) { ch.added = ch.added || (f2.superscript ? 'super-added' : null); ch.removed = ch.removed || (f1.superscript ? 'super-removed' : null); }
+  if (f1.subscript !== f2.subscript) { ch.added = ch.added || (f2.subscript ? 'sub-added' : null); ch.removed = ch.removed || (f1.subscript ? 'sub-removed' : null); }
+  return ch;
+}
+
+function compareWords(p1, p2) {
+  const tokens1 = tokenizeWithFormat(p1.runs);
+  const tokens2 = tokenizeWithFormat(p2.runs);
+  const diff1 = [], diff2 = [];
+  let i = 0, j = 0;
+
+  while (i < tokens1.length || j < tokens2.length) {
+    const t1 = tokens1[i], t2 = tokens2[j];
+    if (!t1 && t2) { diff2.push({ ...t2, change: t2.isSpace ? 'none' : 'added' }); j++; continue; }
+    if (t1 && !t2) { diff1.push({ ...t1, change: t1.isSpace ? 'none' : 'removed' }); i++; continue; }
+
+    if (t1.text === t2.text) {
+      const fmtSame = JSON.stringify(t1.format) === JSON.stringify(t2.format);
+      if (fmtSame) {
+        diff1.push({ ...t1, change: 'none' }); diff2.push({ ...t2, change: 'none' });
+      } else {
+        const fc = detectFormatChange(t1.format, t2.format);
+        diff1.push({ ...t1, change: fc.removed || 'none' }); diff2.push({ ...t2, change: fc.added || 'none' });
+      }
+      i++; j++;
+    } else {
+      const la = 5;
+      let found = false;
+      for (let k = 1; k <= la && i + k < tokens1.length; k++) {
+        if (tokens1[i + k].text === t2.text) { diff1.push({ ...t1, change: t1.isSpace ? 'none' : 'removed' }); i++; found = true; break; }
+      }
+      if (!found) {
+        for (let k = 1; k <= la && j + k < tokens2.length; k++) {
+          if (tokens2[j + k].text === t1.text) { diff2.push({ ...t2, change: t2.isSpace ? 'none' : 'added' }); j++; found = true; break; }
+        }
+      }
+      if (!found) {
+        diff1.push({ ...t1, change: t1.isSpace ? 'none' : 'removed' });
+        diff2.push({ ...t2, change: t2.isSpace ? 'none' : 'added' });
+        i++; j++;
+      }
+    }
+  }
+  return { tokens1: diff1, tokens2: diff2 };
+}
+
+function renderTokensHTML(tokens) {
+  return tokens.map(t => {
+    let cls = [];
+    if (t.format.bold) cls.push('text-bold');
+    if (t.format.italic) cls.push('text-italic');
+    if (t.format.underline) cls.push('text-underline');
+    if (t.format.superscript) cls.push('text-super');
+    if (t.format.subscript) cls.push('text-sub');
+    if (t.change && t.change !== 'none') cls.push('change-' + t.change);
+    if (cls.length === 0) return escH(t.text);
+    return `<span class="${cls.join(' ')}">${escH(t.text)}</span>`;
+  }).join('');
+}
+
+function renderSimpleHTML(para) {
+  return para.runs.map(r => {
+    let cls = [];
+    if (r.format.bold) cls.push('text-bold');
+    if (r.format.italic) cls.push('text-italic');
+    if (r.format.underline) cls.push('text-underline');
+    if (r.format.superscript) cls.push('text-super');
+    if (r.format.subscript) cls.push('text-sub');
+    if (cls.length === 0) return escH(r.text);
+    return `<span class="${cls.join(' ')}">${escH(r.text)}</span>`;
+  }).join('');
+}
+
+function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function flatTokens(para, changeType) {
+  return para.runs.map(run => {
+    return run.text.split(/(\s+)/).filter(Boolean).map(part => ({
+      text: part, format: run.format, isSpace: /^\s+$/.test(part), change: /^\s+$/.test(part) ? 'none' : changeType
+    }));
+  }).flat();
+}
+
+let vordleViewMode = 'side-by-side';
+let vordleComparison = null;
+let vordleDiffIdx = -1;
+
+function isDocx(file) {
+  return file.name.toLowerCase().endsWith('.docx');
+}
+
+function parseTextFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const text = e.target.result;
+      const noFmt = { bold: false, italic: false, underline: false, superscript: false, subscript: false };
+      const lines = text.split('\n');
+      const paragraphs = [];
+      for (const line of lines) {
+        const trimmed = line.replace(/\r$/, '');
+        if (trimmed.trim() === '') continue;
+        paragraphs.push({
+          text: trimmed,
+          runs: [{ text: trimmed, format: noFmt }]
+        });
+      }
+      resolve(paragraphs);
+    };
+    reader.onerror = () => reject(new Error('Faili lugemine ebaõnnestus'));
+    reader.readAsText(file, 'utf-8');
+  });
+}
+
+async function parseFile(file) {
+  if (isDocx(file)) {
+    return await parseDocxXml(file);
+  } else {
+    return await parseTextFile(file);
+  }
+}
+
+async function vordleCompare() {
+  if (!vordleFile1 || !vordleFile2) return;
+  const results = document.getElementById('vordle-results');
+  results.innerHTML = '<div class="vordle-loading">Võrdlen dokumente...</div>';
+  document.getElementById('vordle-btn').disabled = true;
+
+  try {
+    const paras1 = await parseFile(vordleFile1);
+    const paras2 = await parseFile(vordleFile2);
+    const compared = [];
+    const maxLen = Math.max(paras1.length, paras2.length);
+
+    for (let i = 0; i < maxLen; i++) {
+      const p1 = paras1[i], p2 = paras2[i];
+      if (!p1 && p2) { compared.push({ type: 'added', doc1: null, doc2: p2 }); }
+      else if (p1 && !p2) { compared.push({ type: 'removed', doc1: p1, doc2: null }); }
+      else {
+        const same = p1.text === p2.text && JSON.stringify(p1.runs) === JSON.stringify(p2.runs);
+        if (same) compared.push({ type: 'unchanged', doc1: p1, doc2: p2 });
+        else compared.push({ type: 'modified', doc1: p1, doc2: p2, diff: compareWords(p1, p2) });
+      }
+    }
+
+    const stats = {
+      total: compared.length,
+      unchanged: compared.filter(p => p.type === 'unchanged').length,
+      modified: compared.filter(p => p.type === 'modified').length,
+      added: compared.filter(p => p.type === 'added').length,
+      removed: compared.filter(p => p.type === 'removed').length,
+      similarity: ((compared.filter(p => p.type === 'unchanged').length / compared.length) * 100).toFixed(1)
+    };
+
+    vordleComparison = { paragraphs: compared, stats };
+    vordleDiffIdx = -1;
+    vordleRender();
+    document.getElementById('vordle-nextDiff').style.display = (stats.modified + stats.added + stats.removed > 0) ? '' : 'none';
+  } catch (err) {
+    results.innerHTML = '<div class="otsi-ok" style="background:#fde8e8;color:#a33;">Viga: ' + escH(err.message) + '</div>';
+  }
+  document.getElementById('vordle-btn').disabled = false;
+}
+
+function vordleRender() {
+  if (!vordleComparison) return;
+  const { paragraphs, stats } = vordleComparison;
+  let html = '';
+
+  // Stats
+  html += '<div class="stats-grid">';
+  html += `<div class="stat-card"><h4>Sarnasus</h4><div class="value">${stats.similarity}%</div></div>`;
+  html += `<div class="stat-card"><h4>Lõike</h4><div class="value">${stats.total}</div></div>`;
+  html += `<div class="stat-card"><h4>Muutmata</h4><div class="value">${stats.unchanged}</div></div>`;
+  html += `<div class="stat-card"><h4>Muudetud</h4><div class="value">${stats.modified}</div></div>`;
+  html += `<div class="stat-card"><h4>Lisatud</h4><div class="value">${stats.added}</div></div>`;
+  html += `<div class="stat-card"><h4>Eemaldatud</h4><div class="value">${stats.removed}</div></div>`;
+  html += '</div>';
+
+  // Toggle
+  html += '<div class="view-toggle">';
+  html += `<button class="toggle-btn ${vordleViewMode==='side-by-side'?'active':''}" onclick="vordleViewMode='side-by-side';vordleRender()">Kõrvuti</button>`;
+  html += `<button class="toggle-btn ${vordleViewMode==='unified'?'active':''}" onclick="vordleViewMode='unified';vordleRender()">Ühendatud</button>`;
+  html += '</div>';
+
+  if (vordleViewMode === 'side-by-side') {
+    html += '<div class="side-by-side">';
+    // Doc1
+    let diffIdx1 = 0;
+    html += '<div class="doc-panel" id="vp1"><h3>Dokument 1</h3>';
+    paragraphs.forEach(p => {
+      if (!p.doc1) return;
+      const isChanged = p.type !== 'unchanged';
+      const cls = p.type === 'unchanged' ? ' unchanged' : '';
+      const diffAttr = isChanged ? ` data-diff-idx="${diffIdx1}"` : '';
+      let content;
+      if (p.type === 'modified' && p.diff) content = renderTokensHTML(p.diff.tokens1);
+      else if (p.type === 'removed') content = renderTokensHTML(flatTokens(p.doc1, 'removed'));
+      else content = renderSimpleHTML(p.doc1);
+      html += `<div class="paragraph${cls}"${diffAttr}>${content}</div>`;
+      if (isChanged) diffIdx1++;
+    });
+    html += '</div>';
+    // Doc2
+    let diffIdx2 = 0;
+    html += '<div class="doc-panel" id="vp2"><h3>Dokument 2</h3>';
+    paragraphs.forEach(p => {
+      if (!p.doc2) return;
+      const isChanged = p.type !== 'unchanged';
+      const cls = p.type === 'unchanged' ? ' unchanged' : '';
+      const diffAttr = isChanged ? ` data-diff-idx="${diffIdx2}"` : '';
+      let content;
+      if (p.type === 'modified' && p.diff) content = renderTokensHTML(p.diff.tokens2);
+      else if (p.type === 'added') content = renderTokensHTML(flatTokens(p.doc2, 'added'));
+      else content = renderSimpleHTML(p.doc2);
+      html += `<div class="paragraph${cls}"${diffAttr}>${content}</div>`;
+      if (isChanged) diffIdx2++;
+    });
+    html += '</div>';
+    html += '</div>';
+  } else {
+    html += '<div class="unified-view">';
+    let diffIdxU = 0;
+    paragraphs.forEach(p => {
+      const isChanged = p.type !== 'unchanged';
+      const cls = p.type === 'unchanged' ? ' unchanged' : '';
+      const diffAttr = isChanged ? ` data-diff-idx="${diffIdxU}"` : '';
+      let content;
+      if (p.type === 'modified' && p.diff) content = renderTokensHTML(p.diff.tokens2);
+      else if (p.type === 'added') content = renderTokensHTML(flatTokens(p.doc2, 'added'));
+      else if (p.type === 'removed') content = renderTokensHTML(flatTokens(p.doc1, 'removed'));
+      else content = p.doc2 ? renderSimpleHTML(p.doc2) : renderSimpleHTML(p.doc1);
+      html += `<div class="paragraph${cls}"${diffAttr}>${content}</div>`;
+      if (isChanged) diffIdxU++;
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('vordle-results').innerHTML = html;
+
+  // Sync scrolling for side-by-side
+  if (vordleViewMode === 'side-by-side') {
+    const p1 = document.getElementById('vp1');
+    const p2 = document.getElementById('vp2');
+    if (p1 && p2) {
+      let scrolling = false;
+      p1.onscroll = () => { if (scrolling) return; scrolling = true; const r = p1.scrollTop / (p1.scrollHeight - p1.clientHeight); p2.scrollTop = r * (p2.scrollHeight - p2.clientHeight); setTimeout(() => scrolling = false, 50); };
+      p2.onscroll = () => { if (scrolling) return; scrolling = true; const r = p2.scrollTop / (p2.scrollHeight - p2.clientHeight); p1.scrollTop = r * (p1.scrollHeight - p1.clientHeight); setTimeout(() => scrolling = false, 50); };
+    }
+  }
+}
+
+function vordleNextDiff() {
+  // Find all diff paragraphs in the active view
+  const container = document.getElementById('vordle-results');
+  const allDiffs = container.querySelectorAll('[data-diff-idx]');
+  if (allDiffs.length === 0) return;
+
+  // Remove previous highlight
+  container.querySelectorAll('.current-diff').forEach(el => el.classList.remove('current-diff'));
+
+  // In side-by-side, diffs appear in both panels — get unique indices
+  const seen = new Set();
+  const uniqueDiffs = [];
+  allDiffs.forEach(el => {
+    const idx = el.getAttribute('data-diff-idx');
+    if (!seen.has(idx)) {
+      seen.add(idx);
+      uniqueDiffs.push(idx);
+    }
+  });
+
+  // Advance index (wrap around)
+  vordleDiffIdx++;
+  if (vordleDiffIdx >= uniqueDiffs.length) vordleDiffIdx = 0;
+
+  const targetIdx = uniqueDiffs[vordleDiffIdx];
+  const targets = container.querySelectorAll(`[data-diff-idx="${targetIdx}"]`);
+
+  targets.forEach(el => el.classList.add('current-diff'));
+
+  // Scroll into view — in side-by-side scroll the panel, in unified scroll the element
+  const firstTarget = targets[0];
+  if (firstTarget) {
+    const panel = firstTarget.closest('.doc-panel, .unified-view');
+    if (panel) {
+      const offset = firstTarget.offsetTop - panel.offsetTop - 40;
+      panel.scrollTo({ top: offset, behavior: 'smooth' });
+      // Sync the other panel too in side-by-side
+      if (vordleViewMode === 'side-by-side' && targets.length > 1) {
+        const secondTarget = targets[1];
+        const panel2 = secondTarget.closest('.doc-panel');
+        if (panel2) {
+          const offset2 = secondTarget.offsetTop - panel2.offsetTop - 40;
+          panel2.scrollTo({ top: offset2, behavior: 'smooth' });
+        }
+      }
+    }
+  }
+
+  // Update button text
+  document.getElementById('vordle-nextDiff').textContent =
+    'Muutus ' + (vordleDiffIdx + 1) + '/' + uniqueDiffs.length + ' ↓';
+}
+
+// ═════════════════════════════════════════════
+// TOOL 4: XML ID LISAJA
+// ═════════════════════════════════════════════
+let xmlidResult = '';
+let xmlidFileName = '';
+
+setupFileDrop('xmlid-drop', 'xmlid-file', 'xmlid-fname', function(file) {
+  xmlidFileName = file.name;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    document.getElementById('xmlid-input').value = text;
+    document.getElementById('xmlid-inBadge').textContent = text.split('\n').length + ' rida';
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const inp = document.getElementById('xmlid-input');
+  if (inp) inp.addEventListener('input', function() {
+    const lines = this.value.split('\n').length;
+    document.getElementById('xmlid-inBadge').textContent = this.value ? lines + ' rida' : '—';
+  });
+});
+
+function xmlidLeiaNumberJaIndeks(nrRida, kuvatavRida, nrTagRegex) {
+  let number = null, index = null;
+  const match = nrRida.match(nrTagRegex);
+  if (match) {
+    number = match[1];
+    const yMatch = nrRida.match(/ylaIndeks="(\w+)"/);
+    if (yMatch) {
+      index = yMatch[1];
+    } else {
+      const kMatch = kuvatavRida.match(/<sup>(\w+)<\/sup>/);
+      if (kMatch) index = kMatch[1];
+    }
+  }
+  return [number, index];
+}
+
+function xmlidProcess() {
+  const input = document.getElementById('xmlid-input').value;
+  if (!input.trim()) return;
+
+  const lines = input.split('\n').map(l => l + '\n');
+  if (lines.length && lines[lines.length-1] === '\n') lines.pop();
+
+  const muudetudRead = [];
+  const logEntries = [];
+  let i = 0;
+
+  let currentParagraphId = null;
+  let currentParagraphNumber = null;
+  let currentLoigeId = null;
+  const seenLoigeIds = new Set();
+
+  const paragrahvNrPattern = /<paragrahvNr[^>]*>(\d+)<\/paragrahvNr>/;
+  const loigeNrPattern = /<loigeNr[^>]*>(\w+)<\/loigeNr>/;
+  const alampunktNrPattern = /<alampunktNr[^>]*>(\w+)<\/alampunktNr>/;
+  const tyhjadTagPattern = /^<(loigeNr|kuvatavNr)\s*[^>]*\/>$/;
+  const sisutyhjaTagPattern = /^<(loigeNr|kuvatavNr)>\s*(<!\[CDATA\[\s*\]\]>)?\s*<\/(loigeNr|kuvatavNr)>$/;
+
+  let statPara = 0, statLoige = 0, statAlam = 0;
+
+  while (i < lines.length) {
+    const rida = lines[i].trim();
+    const originalLine = lines[i];
+    const lineNumber = i + 1;
+
+    if (rida.startsWith('<paragrahv') && !rida.startsWith('<paragrahvNr') && !rida.startsWith('</paragrahv')) {
+      const nrRida = i+1 < lines.length ? lines[i+1].trim() : '';
+      const kuvatavRida = i+2 < lines.length ? lines[i+2].trim() : '';
+      const [x, y] = xmlidLeiaNumberJaIndeks(nrRida, kuvatavRida, paragrahvNrPattern);
+      if (x) {
+        currentParagraphNumber = x;
+        currentParagraphId = y ? `para${x}b${y}` : `para${x}`;
+        muudetudRead.push(`<paragrahv id="${currentParagraphId}">\n`);
+        statPara++;
+        i++; continue;
+      } else {
+        logEntries.push(`Rida ${lineNumber}: Paragrahvi numbrit ei leitud.`);
+        muudetudRead.push(originalLine); i++; continue;
+      }
+    }
+
+    else if (rida === '</paragrahv>') {
+      currentParagraphId = null;
+      currentParagraphNumber = null;
+      seenLoigeIds.clear();
+      muudetudRead.push(originalLine); i++; continue;
+    }
+
+    else if (currentParagraphId && rida.startsWith('<loige') && !rida.startsWith('<loigeNr') && !rida.startsWith('</loige')) {
+      const loigeNrExists = i+1 < lines.length && lines[i+1].includes('<loigeNr');
+      const kuvatavExists = i+2 < lines.length && lines[i+2].includes('<kuvatavNr');
+
+      const loigeNrTyhi = loigeNrExists && (tyhjadTagPattern.test(lines[i+1].trim()) || sisutyhjaTagPattern.test(lines[i+1].trim()));
+      const kuvatavTyhi = kuvatavExists && (tyhjadTagPattern.test(lines[i+2].trim()) || sisutyhjaTagPattern.test(lines[i+2].trim()));
+
+      if (loigeNrExists && kuvatavExists && loigeNrTyhi && kuvatavTyhi) {
+        const loigeId = `${currentParagraphId}lg1`;
+        if (!seenLoigeIds.has(loigeId)) {
+          seenLoigeIds.add(loigeId);
+          currentLoigeId = loigeId;
+          muudetudRead.push(`<loige id="${currentLoigeId}">\n`);
+          muudetudRead.push(lines[i+1]);
+          muudetudRead.push(lines[i+2]);
+          statLoige++;
+          i += 3; continue;
+        } else {
+          currentLoigeId = null;
+          logEntries.push(`Rida ${lineNumber}: Vaikimisi lõike ID '${loigeId}' on juba kasutusel.`);
+          muudetudRead.push(originalLine); muudetudRead.push(lines[i+1]); muudetudRead.push(lines[i+2]);
+          i += 3; continue;
+        }
+      } else if (loigeNrExists && kuvatavExists) {
+        const [z, c] = xmlidLeiaNumberJaIndeks(lines[i+1].trim(), lines[i+2].trim(), loigeNrPattern);
+        if (z) {
+          const loigeId = c ? `${currentParagraphId}lg${z}b${c}` : `${currentParagraphId}lg${z}`;
+          if (!seenLoigeIds.has(loigeId)) {
+            seenLoigeIds.add(loigeId);
+            currentLoigeId = loigeId;
+            muudetudRead.push(`<loige id="${currentLoigeId}">\n`);
+            muudetudRead.push(lines[i+1]);
+            muudetudRead.push(lines[i+2]);
+            statLoige++;
+            i += 3; continue;
+          } else {
+            currentLoigeId = null;
+            logEntries.push(`Rida ${lineNumber}: Lõike ID '${loigeId}' on juba kasutusel.`);
+            muudetudRead.push(originalLine); muudetudRead.push(lines[i+1]); muudetudRead.push(lines[i+2]);
+            i += 3; continue;
+          }
+        } else {
+          currentLoigeId = null;
+          logEntries.push(`Rida ${lineNumber}: Lõike numbrit ei leitud.`);
+          muudetudRead.push(originalLine);
+          if (i+1 < lines.length) muudetudRead.push(lines[i+1]);
+          if (i+2 < lines.length) muudetudRead.push(lines[i+2]);
+          i += 3; continue;
+        }
+      } else {
+        if (currentParagraphNumber !== null) {
+          const loigeId = `${currentParagraphId}lg1`;
+          if (!seenLoigeIds.has(loigeId)) {
+            seenLoigeIds.add(loigeId);
+            currentLoigeId = loigeId;
+            muudetudRead.push(`<loige id="${currentLoigeId}">\n`);
+            statLoige++;
+            i++; continue;
+          } else {
+            currentLoigeId = null;
+            logEntries.push(`Rida ${lineNumber}: Vaikimisi lõike ID '${loigeId}' on juba kasutusel.`);
+            muudetudRead.push(originalLine); i++; continue;
+          }
+        } else {
+          logEntries.push(`Rida ${lineNumber}: Ei saa määrata vaikimisi lõike ID-d – paragrahvi ID puudub.`);
+          muudetudRead.push(originalLine); i++; continue;
+        }
+      }
+    }
+
+    else if (currentLoigeId && rida === '</loige>') {
+      currentLoigeId = null;
+      muudetudRead.push(originalLine); i++; continue;
+    }
+
+    else if (currentLoigeId && rida.startsWith('<alampunkt') && !rida.startsWith('<alampunktNr') && !rida.startsWith('</alampunkt')) {
+      const aNrRida = i+1 < lines.length ? lines[i+1].trim() : '';
+      const aKuvatav = i+2 < lines.length ? lines[i+2].trim() : '';
+      const [a, b] = xmlidLeiaNumberJaIndeks(aNrRida, aKuvatav, alampunktNrPattern);
+      if (a) {
+        const alampunktId = b ? `${currentLoigeId}p${a}b${b}` : `${currentLoigeId}p${a}`;
+        muudetudRead.push(`<alampunkt id="${alampunktId}">\n`);
+        statAlam++;
+        i++; continue;
+      } else {
+        logEntries.push(`Rida ${lineNumber}: Alampunkti numbrit ei leitud.`);
+        muudetudRead.push(originalLine); i++; continue;
+      }
+    }
+
+    else {
+      muudetudRead.push(originalLine);
+      i++;
+    }
+  }
+
+  xmlidResult = muudetudRead.join('');
+
+  document.getElementById('xmlid-output').textContent = xmlidResult;
+  document.getElementById('xmlid-outBadge').textContent = muudetudRead.length + ' rida';
+
+  document.getElementById('xmlid-sPara').textContent = statPara;
+  document.getElementById('xmlid-sLoige').textContent = statLoige;
+  document.getElementById('xmlid-sAlam').textContent = statAlam;
+  document.getElementById('xmlid-sWarn').textContent = logEntries.length;
+  document.getElementById('xmlid-stats').style.display = 'flex';
+
+  if (logEntries.length > 0) {
+    document.getElementById('xmlid-logPanel').style.display = 'block';
+    document.getElementById('xmlid-logBadge').textContent = logEntries.length + ' kirjet';
+    document.getElementById('xmlid-logArea').textContent = logEntries.join('\n');
+  } else {
+    document.getElementById('xmlid-logPanel').style.display = 'none';
+  }
+
+  document.getElementById('xmlid-dlBtn').disabled = false;
+}
+
+function xmlidDownload() {
+  if (!xmlidResult) return;
+  const blob = new Blob([xmlidResult], { type: 'text/xml;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const base = xmlidFileName ? xmlidFileName.replace(/\.[^.]+$/, '') : 'väljund';
+  a.download = base + '_muudetud.xml';
+  a.click();
+}
+
+function xmlidClear() {
+  document.getElementById('xmlid-input').value = '';
+  document.getElementById('xmlid-output').innerHTML = '<span class="xmlid-empty">Tulemus ilmub siia...</span>';
+  document.getElementById('xmlid-logArea').textContent = '';
+  document.getElementById('xmlid-logPanel').style.display = 'none';
+  document.getElementById('xmlid-stats').style.display = 'none';
+  document.getElementById('xmlid-fname').textContent = '';
+  document.getElementById('xmlid-drop').classList.remove('has-file');
+  document.getElementById('xmlid-inBadge').textContent = '—';
+  document.getElementById('xmlid-outBadge').textContent = '—';
+  document.getElementById('xmlid-dlBtn').disabled = true;
+  xmlidResult = '';
+  xmlidFileName = '';
+}
+
+// ═════════════════════════════════════════════
+// TOOL 5: BASE64 KODEERIJA
+// ═════════════════════════════════════════════
+let base64File = null;
+let base64Result = '';
+let base64OutName = '';
+
+setupFileDrop('base64-drop', 'base64-file', 'base64-fname', function(file) {
+  base64File = file;
+  base64Result = '';
+  document.getElementById('base64-btn').disabled = false;
+  document.getElementById('base64-dlBtn').disabled = true;
+  document.getElementById('base64-info').style.display = 'none';
+  document.getElementById('base64-progressWrap').style.display = 'none';
+});
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(2) + ' MB';
+}
+
+function base64Encode() {
+  if (!base64File) return;
+
+  const file = base64File;
+  const CHUNK = 3 * 1024 * 128; // 384KB chunks (multiple of 3 for clean base64)
+  const totalSize = file.size;
+  const chunks = [];
+  let offset = 0;
+
+  document.getElementById('base64-btn').disabled = true;
+  document.getElementById('base64-dlBtn').disabled = true;
+  document.getElementById('base64-progressWrap').style.display = 'flex';
+  document.getElementById('base64-info').style.display = 'none';
+
+  const fill = document.getElementById('base64-progressFill');
+  const pText = document.getElementById('base64-progressText');
+
+  function readNext() {
+    if (offset >= totalSize) {
+      // Done
+      base64Result = chunks.join('');
+      base64OutName = file.name.replace(/\.[^.]+$/, '') + '.b64';
+
+      fill.style.width = '100%';
+      pText.textContent = '100%';
+
+      document.getElementById('base64-btn').disabled = false;
+      document.getElementById('base64-dlBtn').disabled = false;
+
+      const info = document.getElementById('base64-info');
+      info.style.display = 'block';
+      info.innerHTML =
+        '<strong style="color:var(--accent);">✓ Kodeerimine lõpetatud</strong><br>' +
+        'Algne fail: ' + escH(file.name) + ' (' + formatSize(totalSize) + ')<br>' +
+        'Base64 suurus: ' + formatSize(base64Result.length) + '<br>' +
+        'Väljundfail: ' + escH(base64OutName);
+      return;
+    }
+
+    const slice = file.slice(offset, Math.min(offset + CHUNK, totalSize));
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      // Extract base64 part from data URL
+      const dataUrl = e.target.result;
+      const b64 = dataUrl.substring(dataUrl.indexOf(',') + 1);
+      chunks.push(b64);
+
+      offset += CHUNK;
+      const pct = Math.min(100, Math.round((offset / totalSize) * 100));
+      fill.style.width = pct + '%';
+      pText.textContent = pct + '%';
+
+      // Use setTimeout to keep UI responsive
+      setTimeout(readNext, 0);
+    };
+
+    reader.onerror = function() {
+      document.getElementById('base64-btn').disabled = false;
+      pText.textContent = 'Viga!';
+    };
+
+    reader.readAsDataURL(slice);
+  }
+
+  readNext();
+}
+
+function base64Download() {
+  if (!base64Result) return;
+  const blob = new Blob([base64Result], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = base64OutName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+
+</body>
+</html>

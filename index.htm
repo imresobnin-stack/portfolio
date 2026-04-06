@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portfoolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;400;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #000000;
+            --accent-gradient: linear-gradient(90deg, #ffcc00, #ff6600, #ff3300);
+            --transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            height: 100%;
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .wrapper {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+        }
+
+        header h1 {
+            font-weight: 400;
+            font-size: 0.7rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: #444;
+        }
+
+        .main-nav {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .nav-list { list-style: none; }
+
+        .nav-item {
+            padding: 1vh 0;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: baseline;
+            gap: 20px;
+        }
+
+        .nav-item h2 {
+            font-size: clamp(3rem, 13vh, 9rem);
+            font-weight: 900; 
+            line-height: 0.9;
+            letter-spacing: -0.03em;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.8;
+            transition: var(--transition);
+        }
+
+        .nav-item .index {
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .nav-list:hover .nav-item { opacity: 0.15; }
+        .nav-list .nav-item:hover { 
+            opacity: 1; 
+            transform: translateX(30px);
+        }
+        .nav-item:hover h2 { opacity: 1; transform: scale(1.02); }
+
+        .page-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 100;
+            transform: translateY(100%);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .page-overlay.active { transform: translateY(0); }
+
+        .close-btn {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            background: none;
+            border: 1px solid #222;
+            color: #666;
+            padding: 8px 16px;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            font-size: 0.6rem;
+            transition: 0.3s;
+        }
+
+        .close-btn:hover { border-color: #ff3300; color: #ff3300; }
+
+        .content {
+            max-width: 650px;
+            text-align: center;
+        }
+
+        .content h3 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .content p { color: #888; font-size: 1.2rem; font-weight: 400; margin-bottom: 35px; line-height: 1.6; }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .app-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border: 1px solid #ff6600;
+            color: #ff6600;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+        .app-link:hover {
+            background: #ff6600;
+            color: #000;
+        }
+
+        .app-link.primary {
+            background: #ff6600;
+            color: #000;
+        }
+
+        .app-link.youtube:hover { border-color: #ff0000; color: #ff0000; background: rgba(255, 0, 0, 0.1); }
+        .app-link.deviantart:hover { border-color: #00e59b; color: #00e59b; background: rgba(0, 229, 155, 0.1); }
+
+        footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: #222;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        @media (max-width: 600px) {
+            .nav-item h2 { font-size: 4rem; }
+            .content h3 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <header>
+            <h1>IS / TEGEMISI</h1>
+            <span style="color: #222; font-size: 0.7rem;">EST 2026</span>
+        </header>
+
+        <main class="main-nav">
+            <nav class="nav-list">
+                <div class="nav-item" onclick="openPage('code')">
+                    <span class="index">01</span>
+                    <h2>Code</h2>
+                </div>
+                <div class="nav-item" onclick="openPage('sound')">
+                    <span class="index">02</span>
+                    <h2>Sound</h2>
+                </div>
+                <div class="nav-item" onclick="openPage('pics')">
+                    <span class="index">03</span>
+                    <h2>Pics</h2>
+                </div>
+                <div class="nav-item" onclick="openPage('links')">
+                    <span class="index">04</span>
+                    <h2>Links</h2>
+                </div>
+            </nav>
+        </main>
+
+        <footer>
+            <span>Kõik õigused reserveeritud</span>
+            <span>Liigu hiirega valikutele</span>
+        </footer>
+    </div>
+
+    <div id="overlay" class="page-overlay">
+        <button class="close-btn" onclick="closePage()">SULGE [ESC]</button>
+        <div class="content">
+            <h3 id="p-title"></h3>
+            <div id="p-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sisu andmed (kasutades HTML koode täpitähtede jaoks, et vältida kodeeringu vigu)
+        const data = {
+            code: { 
+                title: "Code", 
+                body: '<p>Eritellimusel tarkvara ja andmet&ouml;&ouml;tluslahendused. FIX XML on loodud spetsiaalselt juriidiliste dokumentide struktuuri korrastamiseks.</p>' +
+                      '<div class="btn-container">' +
+                      '<a href="Tooriistad.html" target="_blank" class="app-link primary">AVA: FIX XML T&Ouml;&Ouml;RIISTAD</a>' +
+                      '<a href="https://play.google.com/store/apps/details?id=com.kreisidarts.app" target="_blank" class="app-link">KREISI DARTS</a>' +
+                      '</div>' 
+            },
+            sound: { 
+                title: "Sound", 
+                body: '<p>Heli kui emotsioon. Atmosf&auml;&auml;rilised helimaastikud ja unikaalne produktsioon. Lisaks audiovisuaalne sisu meelelahutusest eksperimentideni.</p>' +
+                      '<div class="btn-container">' +
+                      '<a href="https://www.youtube.com/@Karvane%C3%95htus%C3%B6%C3%B6k" target="_blank" class="app-link youtube">' +
+                      '<i data-lucide="youtube" size="18"></i> KARVANE &Otilde;HTUS&Ouml;&Ouml;K</a>' +
+                      '</div>'
+            },
+            pics: { 
+                title: "Pics", 
+                body: '<p>Visuaalne arhiiv. Hetked ajas l&auml;bi digitaalse ja analoogobjektiivi. Kureeritud looming ja galeriid.</p>' +
+                      '<div class="btn-container">' +
+                      '<a href="https://www.deviantart.com/fp/gallery/all" target="_blank" class="app-link deviantart">' +
+                      '<i data-lucide="image" size="18"></i> DEVIANTART GALERII</a>' +
+                      '</div>'
+            },
+            links: { 
+                title: "Links", 
+                body: "<p>Leia mind:<br><br>karvaneohtusook@gmail.com</p>" 
+            }
+        };
+
+        function openPage(id) {
+            document.getElementById('p-title').innerText = data[id].title;
+            document.getElementById('p-body').innerHTML = data[id].body;
+            document.getElementById('overlay').classList.add('active');
+            lucide.createIcons();
+        }
+
+        function closePage() {
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") closePage();
+        });
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
