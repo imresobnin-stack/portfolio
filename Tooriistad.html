@@ -394,8 +394,8 @@
   .text-super { vertical-align: super; font-size: 0.8em; }
   .text-sub { vertical-align: sub; font-size: 0.8em; }
 
-  .change-added, .change-text-added { background: rgba(34, 139, 34, 0.18); color: #1a6e1a; padding: 1px 3px; border-radius: 3px; }
-  .change-removed, .change-text-removed { background: rgba(200, 30, 30, 0.15); color: #a02020; padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
+  .change-added, .change-text-added { background: var(--green-add); padding: 1px 3px; border-radius: 3px; }
+  .change-removed, .change-text-removed { background: var(--red-remove); padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
   .change-bold-added { background: var(--yellow-fmt); padding: 1px 3px; border-radius: 3px; }
   .change-bold-removed { background: var(--yellow-fmt); padding: 1px 3px; border-radius: 3px; text-decoration: line-through; }
   .change-italic-added { background: var(--blue-fmt); padding: 1px 3px; border-radius: 3px; }
@@ -698,8 +698,8 @@
   <p class="tool-desc">Lae üles XML-fail või kleebi sisu. Lisatakse paragrahvide, lõigete ja alampunktide ID-d.</p>
 
   <div class="file-drop" id="xmlid-drop">
-    <input type="file" id="xmlid-file" accept=".xml,.txt">
-    <p class="file-drop-label">Klõpsa või lohista <strong>.xml / .txt</strong> fail siia</p>
+    <input type="file" id="xmlid-file" accept=".xml,.txt,.akt">
+    <p class="file-drop-label">Klõpsa või lohista <strong>.xml / .txt / .akt</strong> fail siia</p>
     <p class="file-drop-name" id="xmlid-fname"></p>
   </div>
 
@@ -852,6 +852,7 @@ function puhastaClean() {
     });
   }
   root.querySelectorAll('span').forEach(s => s.replaceWith(...s.childNodes));
+  root.querySelectorAll('font').forEach(f => f.replaceWith(...f.childNodes));
   const removeLinks = document.getElementById('puhasta-removeLinks').checked;
   if (removeLinks) {
     root.querySelectorAll('a').forEach(a => a.replaceWith(...a.childNodes));
@@ -1567,8 +1568,9 @@ function xmlidDownload() {
   const blob = new Blob([xmlidResult], { type: 'text/xml;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
+  const ext = xmlidFileName ? (xmlidFileName.match(/\.[^.]+$/) || ['.xml'])[0] : '.xml';
   const base = xmlidFileName ? xmlidFileName.replace(/\.[^.]+$/, '') : 'väljund';
-  a.download = base + '_muudetud.xml';
+  a.download = base + '_muudetud' + ext;
   a.click();
 }
 
