@@ -559,6 +559,129 @@
     color: var(--fg);
   }
 
+  /* ─── TOOL 6: KONTROLLI HTML ─── */
+  .kontrolli-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .kontrolli-editor {
+    width: 100%;
+    min-height: 280px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--fg);
+    resize: vertical;
+    tab-size: 2;
+    margin-bottom: 16px;
+  }
+  .kontrolli-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .kontrolli-summary-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: center;
+  }
+  .kontrolli-summary-card .num {
+    font-family: var(--font-mono);
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .kontrolli-summary-card .label {
+    font-size: 0.72rem;
+    color: var(--fg2);
+    font-weight: 500;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .kontrolli-issue {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .kontrolli-issue-icon {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .kontrolli-issue-error .kontrolli-issue-icon { background: #fde8e8; color: #c33; }
+  .kontrolli-issue-warning .kontrolli-issue-icon { background: #fff3e0; color: #c77c00; }
+  .kontrolli-issue-body { flex: 1; min-width: 0; }
+  .kontrolli-issue-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 2px; }
+  .kontrolli-issue-desc { font-size: 0.82rem; color: var(--fg2); font-weight: 300; line-height: 1.5; }
+  .kontrolli-issue-line {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 6px;
+    display: inline-block;
+  }
+  .kontrolli-issue-snippet {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--fg2);
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 6px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .kontrolli-issue-snippet mark {
+    background: #fde8e8;
+    color: #c33;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+  .kontrolli-ok {
+    text-align: center;
+    padding: 40px;
+    color: var(--accent);
+  }
+  .kontrolli-ok .check { font-size: 2.5rem; margin-bottom: 8px; }
+  .kontrolli-ok p { font-weight: 300; color: var(--fg2); }
+  .kontrolli-badge {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .kontrolli-badge-error { background: #fde8e8; color: #c33; }
+  .kontrolli-badge-warning { background: #fff3e0; color: #c77c00; }
+  .kontrolli-badge-ok { background: var(--accent-light); color: var(--accent); }
+
   /* ─── FADE IN ─── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(12px); }
@@ -589,6 +712,14 @@
       <div class="menu-card-text">
         <h3>Puhasta HTML</h3>
         <p>Eemalda Word HTML-ist üleliigsed stiilid ja tagid</p>
+      </div>
+      <span class="menu-card-arrow">→</span>
+    </div>
+    <div class="menu-card" onclick="showTool('kontrolli')">
+      <div class="menu-card-icon">✅</div>
+      <div class="menu-card-text">
+        <h3>Kontrolli HTML</h3>
+        <p>Leia HTML tagide vead — poolikud, vale järjekord, tühjad jm</p>
       </div>
       <span class="menu-card-arrow">→</span>
     </div>
@@ -648,6 +779,34 @@
   </div>
 
   <textarea class="output-area" id="puhasta-output" readonly placeholder="Tulemus ilmub siia..."></textarea>
+</div>
+
+<!-- TOOL 6: KONTROLLI HTML -->
+<div class="tool-view" id="tool-kontrolli">
+  <h2>Kontrolli HTML</h2>
+  <p class="tool-desc">Kleebi HTML kood või lae üles fail. Leitakse tagide vead, vale pesastus, poolikud tagid jm.</p>
+
+  <div class="file-drop" id="kontrolli-drop">
+    <input type="file" id="kontrolli-file" accept=".html,.htm,.xhtml,.xml,.svg,.txt">
+    <p class="file-drop-label">Klõpsa või lohista <strong>.html / .xml</strong> fail siia</p>
+    <p class="file-drop-name" id="kontrolli-fname"></p>
+  </div>
+
+  <div class="kontrolli-toolbar">
+    <button class="btn" id="kontrolli-btn" onclick="kontrolliValidate()">Valideeri</button>
+    <button class="btn btn-outline" onclick="kontrolliClear()">Tühjenda</button>
+  </div>
+
+  <textarea class="kontrolli-editor" id="kontrolli-input" spellcheck="false" placeholder="Kleebi HTML kood siia..."></textarea>
+
+  <div id="kontrolli-results" style="display:none;">
+    <div class="kontrolli-summary" id="kontrolli-summary"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <h3 style="font-size:1rem;font-weight:600;">Leitud probleemid</h3>
+      <span class="kontrolli-badge" id="kontrolli-totalBadge"></span>
+    </div>
+    <div id="kontrolli-issuesList"></div>
+  </div>
 </div>
 
 <!-- TOOL 2: OTSI -->
@@ -823,10 +982,22 @@ let puhastaCleaned = '';
 setupFileDrop('puhasta-drop', 'puhasta-file', 'puhasta-fname', function(file) {
   const reader = new FileReader();
   reader.onload = function(e) {
-    puhastaOriginal = e.target.result;
-    document.getElementById('puhasta-btn').disabled = false;
+    const first = e.target.result;
+    const charsetMatch = first.match(/charset[\s]*=[\s]*["']?([a-zA-Z0-9_-]+)/i);
+    const detectedCharset = charsetMatch ? charsetMatch[1].toLowerCase() : '';
+    if (detectedCharset === 'utf-8') {
+      puhastaOriginal = first;
+      document.getElementById('puhasta-btn').disabled = false;
+    } else {
+      const reader2 = new FileReader();
+      reader2.onload = function(e2) {
+        puhastaOriginal = e2.target.result;
+        document.getElementById('puhasta-btn').disabled = false;
+      };
+      reader2.readAsText(file, detectedCharset || 'windows-1257');
+    }
   };
-  reader.readAsText(file, 'windows-1257');
+  reader.readAsText(file, 'utf-8');
 });
 
 function puhastaClean() {
@@ -844,6 +1015,8 @@ function puhastaClean() {
   const root = template.content;
 
   root.querySelectorAll('style').forEach(el => el.remove());
+  // Eemalda display:none elemendid (Word'i peidetud lõigud)
+  root.querySelectorAll('[style*="display:none"], [style*="display: none"]').forEach(el => el.remove());
   for (let i = 1; i <= 6; i++) {
     root.querySelectorAll('h' + i).forEach(h => {
       const p = document.createElement('p');
@@ -873,7 +1046,6 @@ function puhastaClean() {
   });
 
   root.querySelectorAll('p').forEach(p => {
-    p.querySelectorAll('br').forEach(br => br.replaceWith(document.createTextNode(' ')));
     p.innerHTML = p.innerHTML.replace(/\s*\n\s*/g, ' ').replace(/\s+/g, ' ').trim();
   });
 
@@ -881,7 +1053,7 @@ function puhastaClean() {
     el.textContent = el.textContent.trim();
   });
 
-  const allowed = ['p', 'table', 'tr', 'td', 'b', 'i', 'sup', 'sub', 'u'];
+  const allowed = ['p', 'table', 'tr', 'td', 'b', 'i', 'sup', 'sub', 'u', 'br'];
   if (!removeLinks) allowed.push('a');
   function cleanNode(node) {
     if (node.nodeType === Node.ELEMENT_NODE) {
@@ -893,6 +1065,18 @@ function puhastaClean() {
     [...node.childNodes].forEach(cleanNode);
   }
   cleanNode(root);
+
+  // Eemalda tühjad inline-tagid (<b></b>, <i></i> jne)
+  // Kui sees on ainult tühikud, asenda tühikuga
+  root.querySelectorAll('b, i, u, sup, sub').forEach(el => {
+    if (el.innerHTML.trim() === '') {
+      if (el.textContent === '') {
+        el.remove();
+      } else {
+        el.replaceWith(document.createTextNode(' '));
+      }
+    }
+  });
 
   root.querySelectorAll('p').forEach(p => {
     if (p.textContent.trim() === '') p.remove();
@@ -1687,6 +1871,347 @@ function base64Download() {
   a.download = base64OutName;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+// ═════════════════════════════════════════════
+// TOOL 6: KONTROLLI HTML
+// ═════════════════════════════════════════════
+setupFileDrop('kontrolli-drop', 'kontrolli-file', 'kontrolli-fname', function(file) {
+  // Loe kõigepealt binaarelt, tuvasta charset, siis loe uuesti õige kodeeringuga
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const first = e.target.result;
+    // Otsi charset meta-tagist
+    const charsetMatch = first.match(/charset[\s]*=[\s]*["']?([a-zA-Z0-9_-]+)/i);
+    const detectedCharset = charsetMatch ? charsetMatch[1].toLowerCase() : '';
+    if (detectedCharset === 'utf-8') {
+      document.getElementById('kontrolli-input').value = first;
+    } else {
+      const reader2 = new FileReader();
+      reader2.onload = function(e2) {
+        document.getElementById('kontrolli-input').value = e2.target.result;
+      };
+      reader2.readAsText(file, detectedCharset || 'windows-1257');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+function kontrolliClear() {
+  document.getElementById('kontrolli-input').value = '';
+  document.getElementById('kontrolli-results').style.display = 'none';
+  document.getElementById('kontrolli-fname').textContent = '';
+  document.getElementById('kontrolli-drop').classList.remove('has-file');
+}
+
+function kontrolliValidate() {
+  const html = document.getElementById('kontrolli-input').value;
+  if (!html.trim()) return;
+
+  const issues = [];
+
+  const VOID_TAGS = new Set([
+    'area','base','br','col','embed','hr','img','input',
+    'link','meta','param','source','track','wbr','command','keygen','menuitem'
+  ]);
+  const RAW_TEXT_TAGS = new Set(['script','style','textarea','title']);
+
+  function getLineNumber(text, pos) {
+    return text.substring(0, pos).split('\n').length;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Tokenize
+  const commentRegex = /<!--[\s\S]*?-->/g;
+  const doctypeRegex = /<!DOCTYPE[^>]*>/gi;
+
+  const skipRanges = [];
+  let m;
+  while ((m = commentRegex.exec(html)) !== null) skipRanges.push([m.index, m.index + m[0].length]);
+  while ((m = doctypeRegex.exec(html)) !== null) skipRanges.push([m.index, m.index + m[0].length]);
+
+  function isInSkipRange(pos) {
+    return skipRanges.some(([s, e]) => pos >= s && pos < e);
+  }
+
+  const tokens = [];
+  const rawSkipStack = [];
+  const tagRe = /<\/?([a-zA-Z][a-zA-Z0-9-]*)((?:\s+[^>]*?)?)(\s*\/)?>/g;
+
+  while ((m = tagRe.exec(html)) !== null) {
+    if (isInSkipRange(m.index)) continue;
+    const fullMatch = m[0];
+    const tagName = m[1].toLowerCase();
+    const attrs = m[2];
+    const selfClose = (m[3] || '').trim() === '/';
+    const isClosing = fullMatch.startsWith('</');
+    const line = getLineNumber(html, m.index);
+
+    if (rawSkipStack.length > 0) {
+      if (isClosing && tagName === rawSkipStack[rawSkipStack.length - 1]) {
+        rawSkipStack.pop();
+        tokens.push({ tag: tagName, isClosing: true, selfClose: false, line, pos: m.index, raw: fullMatch, attrs });
+      }
+      continue;
+    }
+    if (!isClosing && RAW_TEXT_TAGS.has(tagName)) rawSkipStack.push(tagName);
+    tokens.push({ tag: tagName, isClosing, selfClose, line, pos: m.index, raw: fullMatch, attrs });
+  }
+
+  // Check 1: Self-closing on non-void
+  tokens.forEach(t => {
+    if (t.selfClose && !VOID_TAGS.has(t.tag) && !t.isClosing) {
+      issues.push({ type: 'warning', title: 'Tühi tag: <' + t.tag + '/>', desc: '<' + t.tag + '/> on isesuletud, aga <' + t.tag + '> ei ole void element.', line: t.line, snippet: escHtml(t.raw) });
+    }
+  });
+
+  // Check 2: Closing void
+  tokens.forEach(t => {
+    if (t.isClosing && VOID_TAGS.has(t.tag)) {
+      issues.push({ type: 'error', title: 'Void elemendi sulgemistag: </' + t.tag + '>', desc: '<' + t.tag + '> on void element ja ei vaja sulgemistagi.', line: t.line, snippet: escHtml(t.raw) });
+    }
+  });
+
+  // Check 3: Matching + nesting
+  const stack = [];
+  tokens.forEach(t => {
+    if (VOID_TAGS.has(t.tag) || t.selfClose) return;
+    if (!t.isClosing) {
+      stack.push(t);
+    } else {
+      let found = -1;
+      for (let i = stack.length - 1; i >= 0; i--) {
+        if (stack[i].tag === t.tag) { found = i; break; }
+      }
+      if (found === -1) {
+        issues.push({ type: 'error', title: 'Sulgemistag ilma avamiseta: </' + t.tag + '>', desc: 'Leiti </' + t.tag + '>, aga vastav <' + t.tag + '> puudub.', line: t.line, snippet: escHtml(t.raw) });
+      } else {
+        if (found < stack.length - 1) {
+          stack.slice(found + 1).forEach(inter => {
+            issues.push({ type: 'error', title: 'Vale pesastuse järjekord', desc: '<' + inter.tag + '> (rida ' + inter.line + ') peaks olema suletud enne </' + t.tag + '> (rida ' + t.line + ').', line: t.line, snippetHighlight: true, snippet: '&lt;' + inter.tag + '&gt; ... &lt;/' + t.tag + '&gt; \u2190 <mark>vale j\u00e4rjekord</mark>' });
+          });
+        }
+        stack.splice(found, 1);
+      }
+    }
+  });
+  stack.forEach(t => {
+    issues.push({ type: 'error', title: 'Sulgemata tag: <' + t.tag + '>', desc: '<' + t.tag + '> avati real ' + t.line + ', aga sulgemistag </' + t.tag + '> puudub.', line: t.line, snippet: escHtml(t.raw) });
+  });
+
+  // Check 4: Broken tags
+  const brokenOpen = /<[a-zA-Z][^>]*$/gm;
+  let bm;
+  while ((bm = brokenOpen.exec(html)) !== null) {
+    if (isInSkipRange(bm.index)) continue;
+    issues.push({ type: 'error', title: 'Poolik tag (puudub >)', desc: 'Tag alustati, aga sulgevat ">" ei leitud samal real.', line: getLineNumber(html, bm.index), snippet: escHtml(bm[0].substring(0, 60)) + (bm[0].length > 60 ? '\u2026' : '') });
+  }
+
+  // Check 5: Duplicate attributes
+  tokens.forEach(t => {
+    if (t.isClosing || !t.attrs.trim()) return;
+    const attrRe = /([a-zA-Z_:][\w:.-]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?/g;
+    const seen = {};
+    let am;
+    while ((am = attrRe.exec(t.attrs)) !== null) {
+      const name = am[1].toLowerCase();
+      if (seen[name]) {
+        issues.push({ type: 'warning', title: 'Korduv atribuut: ' + name, desc: 'Tagil <' + t.tag + '> on atribuut "' + name + '" mitu korda.', line: t.line, snippet: escHtml(t.raw) });
+      }
+      seen[name] = true;
+    }
+  });
+
+  // Check 7: Unclosed comments
+  const partialComment = /<!--(?![\s\S]*?-->)/g;
+  while ((m = partialComment.exec(html)) !== null) {
+    issues.push({ type: 'error', title: 'Sulgemata kommentaar', desc: 'Kommentaar alustati "<!--", aga l\u00f5petavat "-->" ei leitud.', line: getLineNumber(html, m.index), snippet: escHtml(html.substring(m.index, m.index + 40)) + '\u2026' });
+  }
+
+  // Check 8: Unquoted attribute values
+  tokens.forEach(t => {
+    if (t.isClosing) return;
+    const uq = /([a-zA-Z_:][\w:.-]*)\s*=\s*([^\s"'>][^\s>]*\s+[^\s>]+)/g;
+    let uqm;
+    while ((uqm = uq.exec(t.attrs)) !== null) {
+      issues.push({ type: 'warning', title: 'Jutum\u00e4rkideta atribuudiv\u00e4\u00e4rtus', desc: 'Atribuudi "' + uqm[1] + '" v\u00e4\u00e4rtus pole jutum\u00e4rkides ja sisaldab t\u00fchikuid.', line: t.line, snippet: escHtml(t.raw.substring(0, 80)) });
+    }
+  });
+
+  // Check 9: Nesting rules
+  const REQUIRED_PARENT = {
+    'td':['tr'],'th':['tr'],'tr':['table','thead','tbody','tfoot'],
+    'thead':['table'],'tbody':['table'],'tfoot':['table'],'caption':['table'],
+    'colgroup':['table'],'col':['colgroup','table'],
+    'li':['ul','ol','menu'],'dt':['dl'],'dd':['dl'],
+    'option':['select','optgroup','datalist'],'optgroup':['select'],
+    'legend':['fieldset'],'figcaption':['figure'],'summary':['details'],
+    'source':['audio','video','picture'],'track':['audio','video'],'area':['map']
+  };
+  const INVALID_CHILDREN = {
+    'p':['div','table','ul','ol','h1','h2','h3','h4','h5','h6','p','section','article','header','footer','nav','aside','blockquote','form','fieldset','details','figure','main','pre'],
+    'span':['div','table','ul','ol','h1','h2','h3','h4','h5','h6','p','section','article','header','footer','nav','aside','blockquote','form','fieldset'],
+    'a':['a'],'button':['button','a','input','select','textarea']
+  };
+  const PARENT_MSG = {
+    'td':'<td> peab olema <tr> sees','th':'<th> peab olema <tr> sees',
+    'tr':'<tr> peab olema <table>/<thead>/<tbody>/<tfoot> sees',
+    'li':'<li> peab olema <ul>/<ol> sees','dt':'<dt> peab olema <dl> sees','dd':'<dd> peab olema <dl> sees'
+  };
+
+  const nestStack2 = [];
+  tokens.forEach(t => {
+    if (VOID_TAGS.has(t.tag)) {
+      const parents = REQUIRED_PARENT[t.tag];
+      if (parents && !nestStack2.some(s => parents.includes(s.tag))) {
+        issues.push({ type: 'error', title: 'Vale pesastus: <' + t.tag + '>', desc: (PARENT_MSG[t.tag] || '<' + t.tag + '> sobiv vanem puudub') + '.', line: t.line, snippet: escHtml(t.raw) });
+      }
+      return;
+    }
+    if (t.selfClose) return;
+    if (!t.isClosing) {
+      const parents = REQUIRED_PARENT[t.tag];
+      if (parents && !nestStack2.some(s => parents.includes(s.tag))) {
+        issues.push({ type: 'error', title: 'Vale pesastus: <' + t.tag + '>', desc: (PARENT_MSG[t.tag] || '<' + t.tag + '> sobiv vanem puudub') + '.', line: t.line, snippet: escHtml(t.raw) });
+      }
+      if (nestStack2.length > 0) {
+        const parent = nestStack2[nestStack2.length - 1];
+        const disallowed = INVALID_CHILDREN[parent.tag];
+        if (disallowed && disallowed.includes(t.tag)) {
+          issues.push({ type: 'warning', title: 'Kahtlane pesastus: <' + t.tag + '> elemendis <' + parent.tag + '>', desc: 'Plokk-element ei tohiks olla <' + parent.tag + '> sees. Rida ' + t.line + ', vanem real ' + parent.line + '.', line: t.line, snippetHighlight: true, snippet: '&lt;' + parent.tag + '&gt; ... &lt;' + t.tag + '&gt; \u2190 <mark>kahtlane pesastus</mark>' });
+        }
+      }
+      nestStack2.push(t);
+    } else {
+      for (let i = nestStack2.length - 1; i >= 0; i--) {
+        if (nestStack2[i].tag === t.tag) { nestStack2.splice(i, 1); break; }
+      }
+    }
+  });
+
+  // Check 10: Table structure
+  let tableDepth = 0, currentTable = null;
+  tokens.forEach(t => {
+    if (t.tag === 'table' && !t.isClosing && !t.selfClose) {
+      tableDepth++;
+      if (tableDepth === 1) currentTable = { line: t.line, hasTr: false, hasTd: false };
+    }
+    if (tableDepth === 1 && t.tag === 'tr' && !t.isClosing && currentTable) currentTable.hasTr = true;
+    if (tableDepth === 1 && (t.tag === 'td' || t.tag === 'th') && !t.isClosing && currentTable) currentTable.hasTd = true;
+    if (t.tag === 'table' && t.isClosing) {
+      if (tableDepth === 1 && currentTable) {
+        if (!currentTable.hasTr) issues.push({ type: 'warning', title: 'Tabel ilma ridadeta', desc: '<table> real ' + currentTable.line + ' ei sisalda \u00fchtegi <tr> elementi.', line: currentTable.line, snippetHighlight: true, snippet: '&lt;table&gt; ... &lt;/table&gt; \u2190 <mark>puudub &lt;tr&gt;</mark>' });
+        else if (!currentTable.hasTd) issues.push({ type: 'warning', title: 'Tabeliread ilma lahtriteta', desc: '<table> real ' + currentTable.line + ' sisaldab <tr>, aga mitte \u00fchtegi <td>/<th>.', line: currentTable.line, snippetHighlight: true, snippet: '&lt;table&gt;&lt;tr&gt;...&lt;/tr&gt;&lt;/table&gt; \u2190 <mark>puudub &lt;td&gt;/&lt;th&gt;</mark>' });
+        currentTable = null;
+      }
+      tableDepth--;
+    }
+  });
+
+  // Check 11: Empty lists
+  let listTag = null, listHasItems = false;
+  tokens.forEach(t => {
+    if ((t.tag === 'ul' || t.tag === 'ol') && !t.isClosing && !t.selfClose) {
+      if (!listTag) { listTag = { tag: t.tag, line: t.line }; listHasItems = false; }
+    }
+    if (listTag && t.tag === 'li' && !t.isClosing) listHasItems = true;
+    if (listTag && (t.tag === 'ul' || t.tag === 'ol') && t.isClosing) {
+      if (!listHasItems) issues.push({ type: 'warning', title: 'T\u00fchi loend: <' + listTag.tag + '>', desc: '<' + listTag.tag + '> real ' + listTag.line + ' ei sisalda \u00fchtegi <li> elementi.', line: listTag.line, snippetHighlight: true, snippet: '&lt;' + listTag.tag + '&gt;&lt;/' + listTag.tag + '&gt; \u2190 <mark>puudub &lt;li&gt;</mark>' });
+      listTag = null;
+    }
+  });
+
+  // Sort
+  const order = { error: 0, warning: 1 };
+  issues.sort((a, b) => {
+    if ((order[a.type] || 0) !== (order[b.type] || 0)) return (order[a.type] || 0) - (order[b.type] || 0);
+    return a.line - b.line;
+  });
+
+  kontrolliRenderResults(issues);
+}
+
+function kontrolliRenderResults(issues) {
+  const area = document.getElementById('kontrolli-results');
+  const list = document.getElementById('kontrolli-issuesList');
+  const summary = document.getElementById('kontrolli-summary');
+  const badge = document.getElementById('kontrolli-totalBadge');
+  area.style.display = 'block';
+
+  const errors = issues.filter(i => i.type === 'error').length;
+  const warnings = issues.filter(i => i.type === 'warning').length;
+
+  summary.innerHTML =
+    '<div class="kontrolli-summary-card"><div class="num" style="color:#c33">' + errors + '</div><div class="label">Vead</div></div>' +
+    '<div class="kontrolli-summary-card"><div class="num" style="color:#c77c00">' + warnings + '</div><div class="label">Hoiatused</div></div>' +
+    '<div class="kontrolli-summary-card"><div class="num">' + issues.length + '</div><div class="label">Kokku</div></div>';
+
+  if (issues.length === 0) {
+    badge.className = 'kontrolli-badge kontrolli-badge-ok';
+    badge.textContent = '\u2713 0 probleemi';
+    list.innerHTML = '<div class="kontrolli-ok"><div class="check">\u2713</div><h3>Vigu ei leitud!</h3><p>HTML tagid tunduvad korras.</p></div>';
+    return;
+  }
+
+  badge.className = errors > 0 ? 'kontrolli-badge kontrolli-badge-error' : 'kontrolli-badge kontrolli-badge-warning';
+  badge.textContent = issues.length + ' probleem' + (issues.length !== 1 ? 'i' : '');
+
+  const iconMap = { error: '\u2715', warning: '!' };
+  list.textContent = '';
+  issues.forEach(issue => {
+    const card = document.createElement('div');
+    card.className = 'kontrolli-issue kontrolli-issue-' + issue.type;
+
+    const icon = document.createElement('span');
+    icon.className = 'kontrolli-issue-icon';
+    icon.textContent = iconMap[issue.type] || '!';
+
+    const body = document.createElement('div');
+    body.className = 'kontrolli-issue-body';
+
+    const title = document.createElement('p');
+    title.className = 'kontrolli-issue-title';
+    title.textContent = issue.title;
+
+    const desc = document.createElement('p');
+    desc.className = 'kontrolli-issue-desc';
+    desc.textContent = issue.desc;
+
+    const line = document.createElement('span');
+    line.className = 'kontrolli-issue-line';
+    line.textContent = 'Rida ' + issue.line;
+
+    body.appendChild(title);
+    body.appendChild(desc);
+    body.appendChild(line);
+
+    if (issue.snippet) {
+      const snip = document.createElement('pre');
+      snip.className = 'kontrolli-issue-snippet';
+      if (issue.snippetHighlight) {
+        const parts = issue.snippet.split(/<mark>|<\/mark>/);
+        for (let i = 0; i < parts.length; i++) {
+          if (i % 2 === 0) {
+            snip.appendChild(document.createTextNode(parts[i].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&')));
+          } else {
+            const mk = document.createElement('mark');
+            mk.textContent = parts[i].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
+            snip.appendChild(mk);
+          }
+        }
+      } else {
+        snip.textContent = issue.snippet.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
+      }
+      body.appendChild(snip);
+    }
+
+    card.appendChild(icon);
+    card.appendChild(body);
+    list.appendChild(card);
+  });
 }
 </script>
 
