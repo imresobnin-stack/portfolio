@@ -586,10 +586,11 @@
   .yt-card{ display:flex; flex-direction:column; gap:10px; color:var(--ink); text-decoration:none; transition: transform .25s }
   .yt-card:hover{ transform: translateY(-4px) }
   .yt-thumb{
-    position:relative; aspect-ratio: 16/9; overflow:hidden;
+    position:relative; aspect-ratio: 1/1; overflow:hidden;
     border:1px solid var(--line-2); border-radius:4px;
     background: oklch(0.20 0.01 30);
     box-shadow: 0 12px 28px -18px oklch(0 0 0 / .6);
+    max-width: 260px;
   }
   .yt-thumb img{ width:100%; height:100%; object-fit:cover; display:block; transition: transform .4s, filter .25s; filter: saturate(.92) }
   .yt-card:hover .yt-thumb img{ transform: scale(1.04); filter: saturate(1.05) }
@@ -614,6 +615,37 @@
   .yt-num{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-3); border:1px solid var(--line); padding:3px 7px; border-radius:99px; flex-shrink:0 }
   .yt-ttl{ color: var(--ink-2); line-height:1.3 }
   .yt-note{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-3) }
+
+  /* --- lightbox --- */
+  .lb-overlay{
+    display:none; position:fixed; inset:0; z-index:9999;
+    background: oklch(0 0 0 / .88);
+    align-items:center; justify-content:center;
+    cursor:zoom-out;
+  }
+  .lb-overlay.open{ display:flex }
+  .lb-inner{
+    position:relative; max-width:min(92vw, 820px); max-height:92vh;
+    display:flex; flex-direction:column; gap:10px; align-items:center;
+    cursor:default;
+  }
+  .lb-imgs{ display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap; justify-content:center }
+  .lb-imgs img{ max-height:80vh; max-width:min(45vw, 390px); width:auto; height:auto; border-radius:4px; display:block }
+  .lb-close{
+    position:absolute; top:-14px; right:-14px;
+    width:36px; height:36px; border-radius:99px;
+    background: var(--ink-3); color: var(--bg); border:none;
+    font-size:20px; line-height:1; cursor:pointer;
+    display:grid; place-items:center;
+    transition: background .2s;
+  }
+  .lb-close:hover{ background: var(--yellow); color: #111 }
+  .yt-card-flip{ cursor:zoom-in }
+  .yt-card-flip .yt-thumb::after{
+    content:'🔍'; position:absolute; bottom:7px; right:9px;
+    font-size:16px; opacity:.7; transition:opacity .2s;
+  }
+  .yt-card-flip:hover .yt-thumb::after{ opacity:1 }
   .yt-note a{ color:var(--rose); text-decoration:underline; text-underline-offset:3px }
   @media (max-width: 760px){ .yt-grid{ grid-template-columns: 1fr 1fr } }
   @media (max-width: 480px){ .yt-grid{ grid-template-columns: 1fr } }
@@ -1072,7 +1104,7 @@
       <div class="sh-tag">Pildid · 2011 — 2026
         <button id="picRefresh" class="pic-refresh" type="button" aria-label="Sega pildivalik">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
-          <span>sega&nbsp;uuesti</span>
+          <span>näita&nbsp;teisi</span>
         </button>
       </div>
     </header>
@@ -1095,7 +1127,8 @@
       </article>
     </div>
 
-    <div class="pic-links reveal">
+    <div class="pic-links reveal" style="align-items:center;">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);">Edasi vaata siit</span>
       <a href="https://www.deviantart.com/fp" target="_blank" rel="noopener" class="pic-link">DeviantArt →</a>
       <a href="https://stock.adobe.com/ee/contributor/212338557/Imre" target="_blank" rel="noopener" class="pic-link">Adobe Stock →</a>
     </div>
@@ -1198,11 +1231,11 @@
 
     <div class="sound-yt reveal">
       <div class="yt-grid">
-        <div class="yt-card">
+        <div class="yt-card yt-card-flip" data-front="KO_front_1.jpg" data-back="KO_back.jpg">
           <div class="yt-thumb"><img src="KO_front_1.jpg" alt="Karvane Õhtusöök" loading="lazy" /></div>
           <div class="yt-meta"><span class="yt-num">01</span><span class="yt-ttl">Karvane Õhtusöök · 01</span></div>
         </div>
-        <div class="yt-card">
+        <div class="yt-card yt-card-flip" data-front="2_ESILEHT_OIGE_2.jpg" data-back="2_LOOD_OIGE.jpg">
           <div class="yt-thumb"><img src="2_ESILEHT_OIGE_2.jpg" alt="Karvane Õhtusöök 2" loading="lazy" /></div>
           <div class="yt-meta"><span class="yt-num">02</span><span class="yt-ttl">Karvane Õhtusöök · 02</span></div>
         </div>
@@ -1228,17 +1261,10 @@
     </header>
 
     <div class="text-grid reveal">
-      <article class="essay y" data-story="lugu1" tabindex="0">
-        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
-        <h3>Karu, <em>valvurimutt</em> ja muuseumikuumus</h3>
-        <p>Triibuliste trakspükstega karu sõidab kolmerattalise jalgrattaga ümber maja ja mõmiseb tähtsalt. Muuseumis oli palav. Valvurimutt kardab külma ja kütab nigu pöörane…</p>
-        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
-      </article>
-
-      <article class="essay r" data-story="lugu2" tabindex="0">
-        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
-        <h3>Vikerkaar, <em>hiir</em> ja simsalabim</h3>
-        <p>Puhub varba peale ja lausub paar nõiasõna. Kapi alt tuleb valges kitlis hiir, prillid ninal ja stetoskoop ümber kaela. Raputab haigele kohale rohelist pulbrit ja jala ümber tekib vikerkaar…</p>
+      <article class="essay r" data-story="lugu8" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>5 min lugemist</span></div>
+        <h3>Trussilla, <em>härra Vorst</em> ja doktor Oz</h3>
+        <p>Maasikas lebas raugelt köögilaual ning uudistas ümbrust. Kõik oli nagu tavaliselt — banaanikleepekatega kaetud külmkapp undas vaikselt, seinakell keerutas eri mõõtu kätega ja koorimise eest peitu pugenud kartul piilus kapi alt oma nööpsilmadega arglikult välja…</p>
         <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
       </article>
 
@@ -1249,6 +1275,27 @@
         <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
       </article>
 
+      <article class="essay y" data-story="lugu5" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
+        <h3>Vapper <em>räimerull</em></h3>
+        <p>Vapper räimerull ärkas oma plastikust voodis ja hõõrus uniselt silmi. Ümberringi oli tühjus. "Kuhu kõik on kadunud?", mõtles ta ja tõusis istukile. Ta pühkis põlvedelt sibulapuru…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
+      <article class="essay r" data-story="lugu1" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
+        <h3>Karu, <em>valvurimutt</em> ja muuseumikuumus</h3>
+        <p>Triibuliste trakspükstega karu sõidab kolmerattalise jalgrattaga ümber maja ja mõmiseb tähtsalt. Muuseumis oli palav. Valvurimutt kardab külma ja kütab nigu pöörane…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
+      <article class="essay t" data-story="lugu2" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
+        <h3>Vikerkaar, <em>hiir</em> ja simsalabim</h3>
+        <p>Puhub varba peale ja lausub paar nõiasõna. Kapi alt tuleb valges kitlis hiir, prillid ninal ja stetoskoop ümber kaela. Raputab haigele kohale rohelist pulbrit ja jala ümber tekib vikerkaar…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
       <article class="essay y" data-story="lugu4" tabindex="0">
         <div class="meta"><span class="cat">Lugu</span><span>3 min lugemist</span></div>
         <h3>Kärbes <em>Voldemar</em> ja Brunhilda</h3>
@@ -1256,31 +1303,17 @@
         <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
       </article>
 
-      <article class="essay r" data-story="lugu5" tabindex="0">
-        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
-        <h3>Vapper <em>räimerull</em></h3>
-        <p>Vapper räimerull ärkas oma plastikust voodis ja hõõrus uniselt silmi. Ümberringi oli tühjus. "Kuhu kõik on kadunud?", mõtles ta ja tõusis istukile. Ta pühkis põlvedelt sibulapuru…</p>
-        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
-      </article>
-
-      <article class="essay t" data-story="lugu6" tabindex="0">
+      <article class="essay r" data-story="lugu6" tabindex="0">
         <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
         <h3>Mis juhtub kui <em>juustu</em> pubisse kaasa võtta</h3>
         <p>Kõik käivad tasku kallal miskipärast ja laud on juustupuru täis. Kui omanik tuleb, siis visatakse juustukera üle aia ja kõik vaatavad süütute silmadega otsa. Aia tagant tuleb nördinud kodanik, suur sinine muhk peas…</p>
         <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
       </article>
 
-      <article class="essay y" data-story="lugu7" tabindex="0">
+      <article class="essay t" data-story="lugu7" tabindex="0">
         <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
         <h3>Sekretär ja <em>sibulahirm</em></h3>
         <p>"TRA!" röögatas sekretär ja vandus pikalt ning filigraanselt vene keeles. Kabinettides saabus haudvaikus, kuulda oli ainult vaikset tilkumist raamatupidaja laua alt — pensionieelikust memmeke oli vaga ja pelglik inimene ning ehmus kergesti…</p>
-        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
-      </article>
-
-      <article class="essay r" data-story="lugu8" tabindex="0">
-        <div class="meta"><span class="cat">Lugu</span><span>5 min lugemist</span></div>
-        <h3>Trussilla, <em>härra Vorst</em> ja doktor Oz</h3>
-        <p>Maasikas lebas raugelt köögilaual ning uudistas ümbrust. Kõik oli nagu tavaliselt — banaanikleepekatega kaetud külmkapp undas vaikselt, seinakell keerutas eri mõõtu kätega ja koorimise eest peitu pugenud kartul piilus kapi alt oma nööpsilmadega arglikult välja…</p>
         <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
       </article>
     </div>
@@ -1362,35 +1395,50 @@
 
 
 
-  // ===== randomize portfolio pictures from uploads/
+  // ===== pictures: lae pildid kaustast "pildid/", 1–125, .jpg või .jpeg
   (function(){
-    const POOL = [
-      'uploads/1.jpeg','uploads/3.jpeg','uploads/6.jpeg',
-      'uploads/57.jpeg','uploads/62.jpeg','uploads/66.jpeg',
-      'uploads/69.jpeg','uploads/71.jpeg','uploads/73.jpeg',
-      'uploads/103.jpeg','uploads/107.jpeg','uploads/120.jpeg'
-    ];
-    function shuffle(){
-      const arr = POOL.slice();
-      for(let i = arr.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
+    // Ehita kandidaatide nimekiri
+    const CANDIDATES = [];
+    for(let i = 1; i <= 125; i++){
+      CANDIDATES.push('pildid/' + i + '.jpg');
+      CANDIDATES.push('pildid/' + i + '.jpeg');
     }
-    const imgs = document.querySelectorAll('.pic-img');
+
+    // Kontrolli, millised pildid päriselt olemas on
+    function probeAll(list, cb){
+      const found = [];
+      let pending = list.length;
+      list.forEach(src => {
+        const img = new Image();
+        img.onload  = () => { found.push(src); if(!--pending) cb(found); };
+        img.onerror = () => {                   if(!--pending) cb(found); };
+        img.src = src;
+      });
+    }
+
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i = a.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    const picImgs = document.querySelectorAll('.pic-img');
+    let POOL = [];
+
     function applyPics(animate){
-      const arr = shuffle();
-      imgs.forEach((img, i) => {
+      if(!POOL.length) return;
+      const arr = shuffle(POOL);
+      picImgs.forEach((img, i) => {
         const src = arr[i % arr.length];
         if(animate){
           img.classList.add('shuffling');
           img.classList.remove('loaded');
           setTimeout(() => {
-            img.addEventListener('load', () => {
-              img.classList.remove('shuffling');
-              img.classList.add('loaded');
-            }, { once:true });
+            img.addEventListener('load',  () => { img.classList.remove('shuffling'); img.classList.add('loaded'); }, { once:true });
+            img.onerror = () => img.classList.remove('shuffling');
             img.src = src;
           }, 240);
         } else {
@@ -1399,8 +1447,31 @@
         }
       });
     }
-    applyPics(false);
 
+    // Käivita: leia olemasolevad pildid, siis näita
+    probeAll(CANDIDATES, found => {
+      POOL = found;
+      applyPics(false);
+
+      // Klõpsul avab pildi suurelt — lightbox
+      picImgs.forEach(img => {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', () => {
+          if(!img.src) return;
+          const ov = document.getElementById('lbOverlay');
+          const lbI = document.getElementById('lbImgs');
+          lbI.innerHTML = '';
+          const big = document.createElement('img');
+          big.src = img.src; big.alt = '';
+          big.style.cssText = 'max-height:90vh;max-width:92vw;width:auto;height:auto;border-radius:4px;display:block;cursor:zoom-out';
+          lbI.appendChild(big);
+          ov.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+    });
+
+    // Nupp "Näita teisi"
     const btn = document.getElementById('picRefresh');
     if(btn){
       btn.addEventListener('click', () => {
@@ -1513,6 +1584,45 @@
     document.addEventListener('keydown', e => { if(e.key === 'Escape' && modal.classList.contains('open')) close(); });
   })();
 
+</script>
+
+<!-- lightbox -->
+<div class="lb-overlay" id="lbOverlay" role="dialog" aria-modal="true">
+  <div class="lb-inner" id="lbInner">
+    <button class="lb-close" id="lbClose" aria-label="Sulge">×</button>
+    <div class="lb-imgs" id="lbImgs"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const overlay = document.getElementById('lbOverlay');
+  const lbImgs  = document.getElementById('lbImgs');
+  const lbClose = document.getElementById('lbClose');
+  const lbInner = document.getElementById('lbInner');
+
+  function open(front, back){
+    lbImgs.innerHTML = '';
+    [front, back].forEach(src => {
+      const img = document.createElement('img');
+      img.src = src; img.alt = '';
+      lbImgs.appendChild(img);
+    });
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function close(){
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.yt-card-flip').forEach(card => {
+    card.addEventListener('click', () => open(card.dataset.front, card.dataset.back));
+  });
+  lbClose.addEventListener('click', close);
+  overlay.addEventListener('click', e => { if(!lbInner.contains(e.target) || e.target.tagName === 'IMG') close(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') close(); });
+})();
 </script>
 
 </body>
