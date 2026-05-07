@@ -1,0 +1,1519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IMRE — Pictures · Code · Sound · Text — v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet" />
+<style>
+  /* fluid scale: kogu lehe sisu skaleerub viewport laiusega 
+     - 1320..1680px → norm (1)
+     - alla 1320 → väiksem
+     - üle 1680 → suurem (kuni 1.15)
+  */
+  :root{
+    --scale: clamp(0.7, 0.35 + 0.5vw, 1.15);
+    --bg: oklch(0.16 0.01 60);
+    --bg-2: oklch(0.13 0.012 60);
+    --ink: oklch(0.96 0.012 80);
+    --ink-2: oklch(0.78 0.012 80);
+    --ink-3: oklch(0.55 0.012 80);
+    --line: oklch(0.28 0.012 80 / .9);
+    --line-2: oklch(1 0 0 / .08);
+    --yellow: oklch(0.88 0.18 95);
+    --rose:   oklch(0.66 0.23 22);
+    --teal:   oklch(0.78 0.13 200);
+    --accent: var(--rose);
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{background:var(--bg); color:var(--ink); font-family:'Space Grotesk',system-ui,sans-serif; -webkit-font-smoothing:antialiased; font-feature-settings:"ss01","ss02"}
+  body{overflow-x:hidden}
+  a{color:inherit; text-decoration:none}
+  img{display:block; max-width:100%}
+  button{font:inherit; color:inherit; background:none; border:0; cursor:pointer}
+
+  /* film grain overlay */
+  body::after{
+    content:"";
+    position:fixed; inset:0; pointer-events:none; z-index:9999;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity:.18; mix-blend-mode:overlay;
+  }
+
+  /* ================= NAV ================= */
+  .nav{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:grid; grid-template-columns:auto 1fr; align-items:center;
+    padding:22px 32px;
+    background: oklch(0.14 0.008 50 / .82);
+    border-bottom: 1px solid oklch(1 0 0 / .06);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  }
+  .nav .logo{ color:#fff }
+  .nav .nav-links a{ color: oklch(0.88 0.01 60) }
+  .nav .nav-links a:hover{ color:#fff }
+  .nav .nav-links a.active{ color:#fff; background: oklch(1 0 0 / .08) }
+  .nav .nav-links a.active .num{ color: var(--rose) }
+  .logo{
+    font-family:'Archivo Black', sans-serif; letter-spacing:.02em; font-size:22px; line-height:1;
+    display:flex; align-items:baseline; gap:0;
+  }
+  .logo .dot{ display:inline-block; width:9px; height:9px; border-radius:99px; background:var(--rose); transform:translateY(-2px); margin-right:8px }
+  .logo b{ color:var(--rose); font-weight:inherit }
+  .logo small{ display:block; font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:.32em; color:var(--ink-3); margin-top:2px; text-transform:uppercase }
+
+  .nav-links{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap }
+  .nav-links a{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.2em;
+    text-transform:uppercase; padding:10px 14px; border-radius:99px;
+    color:var(--ink-2); position:relative; transition:color .2s;
+  }
+  .nav-links a .num{ color:var(--ink-3); margin-right:6px; font-size:9px }
+  .nav-links a:hover{ color:var(--ink) }
+  .nav-links a.active{ color:var(--ink); background:oklch(0.16 0.01 60 / .06) }
+  .nav-links a.active .num{ color:var(--accent) }
+ 70%{box-shadow:0 0 0 10px oklch(0.78 0.13 200 / 0)} 100%{box-shadow:0 0 0 0 oklch(0.78 0.13 200 / 0)} }
+
+  /* ================= SIDE INDEX ================= */
+  .side{
+    position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:40;
+    display:flex; flex-direction:column; gap:18px; align-items:center;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.2em;
+  }
+  .side a{
+    display:flex; align-items:center; gap:10px; color:var(--ink-3);
+    writing-mode:vertical-rl; transform:rotate(180deg); transition:color .2s;
+  }
+  .side a::before{
+    content:""; display:block; width:1px; height:18px; background:var(--line);
+    transform:rotate(180deg);
+  }
+  .side a.active{ color:var(--ink) }
+  .side a.active::before{ background:var(--accent); height:32px }
+
+  /* ================= HERO (dark editorial — two-column) ================= */
+  .hero{
+    position:relative; min-height:100vh; padding:0;
+    overflow:hidden;
+    background: var(--bg);
+    background-image:
+      radial-gradient(60% 70% at 82% 32%, oklch(0.22 0.04 70) 0%, transparent 70%),
+      radial-gradient(50% 60% at 12% 88%, oklch(0.20 0.04 30) 0%, transparent 65%);
+    color: var(--ink);
+  }
+  .hero::before{
+    content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.35 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity:.20; mix-blend-mode:overlay;
+  }
+
+  .hero-stage{
+    position:relative; z-index:1; min-height:100vh;
+    max-width:1640px; margin:0 auto;
+    padding: clamp(96px, 11vw, 140px) clamp(28px, 4.5vw, 80px) clamp(60px, 7vw, 100px);
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: clamp(24px, 3.5vw, 56px);
+    align-items: center;
+  }
+
+  /* LEFT COLUMN: masthead */
+  .hero-left{ position:relative; z-index:2; min-width:0 }
+
+  .hero-mast{
+    position:relative; pointer-events:none;
+    font-family:'Archivo Black', sans-serif;
+    text-transform:uppercase; letter-spacing:-.045em; line-height:.9;
+    /* skaleerub konteineri laiusega — ei jookse kunagi pildile, sest on omas veerus */
+    font-size: clamp(40px, 8.2vw, 132px);
+    color: var(--ink);
+    margin:0;
+  }
+  .hero-mast .row{ display:block; position:relative }
+  .hero-mast .row.r2{ padding-left: 0 }
+  .hero-mast .row.r3{ padding-left: 0; margin-top: .04em }
+  .hero-mast .ital{
+    font-family:'Fraunces', serif; font-style:italic; font-weight:300;
+    letter-spacing:-.02em; color: var(--ink-2);
+    padding-right:.04em;
+  }
+  .hero-mast .yel{ color: var(--yellow) }
+  .hero-mast .ros{ color: var(--rose) }
+  .hero-mast .tea{ color: var(--teal) }
+  .hero-mast .outl{
+    color: transparent;
+    -webkit-text-stroke: 2px oklch(1 0 0 / .35);
+  }
+
+  .typed-slot{ display:inline-block; min-width: 4.2em; white-space: nowrap }
+  .hero-mast .row.r2{ white-space: nowrap }
+  #typed.yel{ color: var(--yellow) }
+  #typed.ros{ color: var(--rose) }
+  #typed.tea{ color: var(--teal) }
+  .caret-h{
+    display:inline-block; width:.07em; height:.78em; vertical-align:-0.06em;
+    background: var(--ink); margin-left:.04em;
+    animation: heroBlink 1.05s steps(1) infinite;
+  }
+  @keyframes heroBlink{ 50%{ opacity:0 } }
+
+  /* legacy grid figure rules \u2014 overridden by absolute .hero-figure above */
+  .hero-figure-legacy{ display:none }
+
+  /* corner editorial labels */
+  .ed-label{
+    position:absolute; z-index:4;
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.22em;
+    text-transform:uppercase; color: var(--ink-2);
+    display:flex; align-items:center; gap:10px;
+  }
+  .ed-label::before{ content:""; width:22px; height:1px; background: var(--ink-3) }
+  .ed-label.tl{ top: clamp(80px, 8.5vw, 110px); left: clamp(28px, 4.5vw, 80px) }
+  .ed-label.tr{ top: clamp(80px, 8.5vw, 110px); right: clamp(28px, 4.5vw, 80px); flex-direction:row-reverse }
+  .ed-label.tr::before{ background: var(--rose) }
+  .ed-label .num{ color: var(--ink-3) }
+
+  /* bottom strip */
+  .hero-strip{
+    position:absolute; left:64px; right:64px; bottom:88px; z-index:5;
+    display:grid; grid-template-columns: 1.1fr 1.4fr 1fr; gap:48px; align-items:end;
+    padding-top:22px; border-top:1px solid oklch(0.16 0.01 60 / .25);
+  }
+  .hero-strip .col h6{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.24em;
+    color: oklch(0.4 0.02 60); text-transform:uppercase; margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .hero-strip .col h6 i{ width:6px; height:6px; border-radius:99px; background: oklch(0.70 0.18 70); display:block }
+  .hero-strip .col p{ color: oklch(0.16 0.01 60); font-size:14.5px; line-height:1.55; max-width:42ch }
+  .hero-strip .col p em{ font-style:normal; border-bottom:1px solid oklch(0.70 0.18 70); padding-bottom:1px }
+  .hero-strip .meta{
+    display:grid; grid-template-columns: 1fr 1fr; gap:14px 24px;
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.18em;
+    text-transform:uppercase; color: oklch(0.4 0.02 60);
+  }
+  .hero-strip .meta b{ display:block; color: oklch(0.16 0.01 60); font-weight:500; margin-bottom:3px; font-size:13px; letter-spacing:.04em }
+
+  /* vertical issue stamp */
+  .issue-stamp{
+    position:absolute; left:22px; top:50%; transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-rl;
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.4em;
+    text-transform:uppercase; color: oklch(0.4 0.02 60); z-index:4;
+  }
+  .issue-stamp b{ color: oklch(0.55 0.22 22); font-weight:500 }
+
+  /* hand-set caption near figure */
+  .figure-caption{
+    position:absolute; z-index:5;
+    top:38%; right:5%;
+    max-width:220px;
+    color: oklch(0.30 0.01 60); font-family:'Fraunces', serif; font-style:italic; font-weight:300;
+    font-size:15px; line-height:1.45;
+    border-left:1px solid oklch(0.55 0.22 22); padding:8px 0 8px 14px;
+    background: oklch(0.95 0.025 88 / .55); backdrop-filter: blur(2px);
+  }
+  .figure-caption b{ display:block; font-family:'JetBrains Mono', monospace; font-style:normal; font-weight:500; font-size:10px; letter-spacing:.22em; color: oklch(0.55 0.22 22); text-transform:uppercase; margin-bottom:6px }
+
+  /* corner crop marks */
+  .crop{ position:absolute; width:20px; height:20px; z-index:4; pointer-events:none }
+  .crop.tl{ top:88px; left:54px; border-top:1px solid oklch(0.35 0.02 60); border-left:1px solid oklch(0.35 0.02 60) }
+  .crop.tr{ top:88px; right:54px; border-top:1px solid oklch(0.35 0.02 60); border-right:1px solid oklch(0.35 0.02 60) }
+  .crop.bl{ bottom:80px; left:54px; border-bottom:1px solid oklch(0.35 0.02 60); border-left:1px solid oklch(0.35 0.02 60) }
+  .crop.br{ bottom:80px; right:54px; border-bottom:1px solid oklch(0.35 0.02 60); border-right:1px solid oklch(0.35 0.02 60) }
+
+  /* light-cream nav while hero is in view — DISABLED: nav stays dark */
+  body.over-hero .side a{ color: oklch(0.45 0.02 60) }
+  body.over-hero .side a::before{ background: oklch(0.18 0.01 60 / .25) }
+  body.over-hero .side a.active{ color: oklch(0.16 0.01 60) }
+
+  /* marquee */
+  .marquee{
+    position:relative; z-index:5;
+    border-top:1px solid var(--line-2); border-bottom:1px solid var(--line-2);
+    margin:0; padding:18px 0; overflow:hidden; background: oklch(0.13 0.012 60 / .85);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .marquee-track{
+    display:flex; gap:48px; white-space:nowrap; animation:slide 40s linear infinite;
+    font-family:'Archivo Black', sans-serif; text-transform:uppercase; font-size:18px; letter-spacing:.04em;
+    color:var(--ink-2);
+  }
+  .marquee-track span{ display:inline-flex; align-items:center; gap:48px }
+  .marquee-track i{ display:inline-block; width:8px; height:8px; border-radius:99px; background:var(--accent); flex:none; font-style:normal }
+  @keyframes slide{ to{ transform:translateX(-50%) } }
+
+  /* ================= SECTIONS ================= */
+  section.block{
+    position:relative; padding:140px 40px;
+    border-top:1px solid var(--line);
+  }
+  section.block.alt{ background:var(--bg-2) }
+  .container{ max-width:1480px; margin:0 auto }
+
+  .section-head{
+    display:grid; grid-template-columns: 80px 1fr auto; gap:24px; align-items:end;
+    padding-bottom:36px; margin-bottom:56px;
+    border-bottom:1px solid var(--line-2);
+  }
+  .sh-num{
+    font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.22em; color:var(--ink-3);
+    border-right:1px solid var(--line-2); padding-right:18px;
+  }
+  .sh-title{
+    font-family:'Archivo Black', sans-serif; font-size: clamp(48px, 7.5vw, 116px); line-height:.9;
+    letter-spacing:-.03em; text-transform:uppercase;
+  }
+  .sh-tag{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-2);
+    display:flex; align-items:center; gap:10px;
+  }
+  .sh-tag::before{ content:""; width:9px; height:9px; border-radius:99px; background:var(--accent) }
+
+  .sh-yellow{ --accent: var(--yellow) }
+  .sh-rose  { --accent: var(--rose) }
+  .sh-teal  { --accent: var(--teal) }
+  .sh-mix   { --accent: var(--ink) }
+
+  .sh-title .accent{ color:var(--accent) }
+
+  /* ============== PICTURES (yellow) =============== */
+  .pic-refresh{
+    display:inline-flex; align-items:center; gap:7px;
+    margin-left:14px; padding:5px 11px 5px 9px;
+    border:1px solid var(--line-2); border-radius:99px;
+    background: transparent; color: var(--ink-2);
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.18em; text-transform:uppercase;
+    cursor: pointer; transition: background .2s, color .2s, border-color .2s, transform .2s;
+    vertical-align: middle;
+  }
+  .pic-refresh:hover{ background: transparent; border-color: var(--yellow); color: var(--yellow) }
+  .pic-refresh:active{ transform: scale(.96) }
+  .pic-refresh svg{ transition: transform .5s cubic-bezier(.6,.05,.3,1) }
+  .pic-refresh.spinning svg{ transform: rotate(360deg) }
+  .pic-img.shuffling{ opacity:0; transition: opacity .25s ease }
+
+  .pictures-grid{
+    display:grid; grid-template-columns: 1.4fr 1fr 1fr; grid-template-rows: 320px 240px; gap:14px;
+  }
+  .pic{
+    position:relative; overflow:hidden; background:var(--bg-2);
+    border:1px solid var(--line-2); border-radius:2px;
+  }
+  .pic.tall{ grid-row: 1 / span 2 }
+  .pic{ color:#fff }
+  .pic-ph{
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(45deg, oklch(0.16 0.01 60 / .25) 0 2px, transparent 2px 14px),
+      linear-gradient(135deg, oklch(0.85 0.04 80), oklch(0.78 0.03 60));
+  }
+
+  .pic-ph .pic-img{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; object-position:center;
+    opacity:0; transition: opacity .5s ease;
+  }
+  .pic-ph .pic-img.loaded{ opacity:1 }
+
+  .pic.acc-y .pic-ph{ background-image: repeating-linear-gradient(45deg, oklch(0.55 0.18 95 / .35) 0 2px, transparent 2px 14px), linear-gradient(135deg, oklch(0.86 0.14 90), oklch(0.78 0.10 80)) }
+  .pic.acc-r .pic-ph{ background-image: repeating-linear-gradient(45deg, oklch(0.55 0.18 15 / .35) 0 2px, transparent 2px 14px), linear-gradient(135deg, oklch(0.78 0.14 20), oklch(0.66 0.18 22)) }
+  .pic.acc-t .pic-ph{ background-image: repeating-linear-gradient(45deg, oklch(0.55 0.18 200 / .35) 0 2px, transparent 2px 14px), linear-gradient(135deg, oklch(0.80 0.10 200), oklch(0.68 0.13 210)) }
+  .pic-meta{
+    position:absolute; left:14px; bottom:14px; right:14px;
+    display:flex; align-items:end; justify-content:space-between;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.18em; color:#fff; text-transform:uppercase;
+  }
+  .pic-meta b{ font-family:'Archivo Black', sans-serif; font-size:18px; letter-spacing:0; text-transform:uppercase; display:block; margin-bottom:6px; color:#fff }
+  .pic-meta s{ text-decoration:none; color:oklch(1 0 0 / .7) }
+  .pic-tag{ padding:4px 8px; border:1px solid oklch(1 0 0 / .6); border-radius:99px; color:#fff; font-size:9px }
+  .pic-num{
+    position:absolute; top:14px; left:14px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; color:#fff;
+  }
+  .pic-corner{
+    position:absolute; top:14px; right:14px; width:14px; height:14px;
+    border-top:1px solid var(--accent); border-right:1px solid var(--accent);
+  }
+  .pic.acc-y { --accent: var(--yellow) }
+  .pic.acc-r { --accent: var(--rose) }
+  .pic.acc-t { --accent: var(--teal) }
+
+  .pic .uppic{
+    position:absolute; inset:0; background-size:cover; background-position:center;
+  }
+  .pic-overlay{ position:absolute; inset:0; background:linear-gradient(180deg, transparent 30%, oklch(0.16 0.01 60 / .75)) }
+
+  .pic-links{ display:flex; gap:12px; margin-top:24px; flex-wrap:wrap }
+  .pic-link{ font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.12em; text-transform:uppercase; padding:10px 18px; border:1px solid var(--line); border-radius:99px; color:var(--ink-2); transition:color .2s, border-color .2s }
+  .pic-link:hover{ color:var(--yellow); border-color:var(--yellow) }
+
+  /* ============== CODE — Crazy Darts pitch (yellow) =============== */
+  .darts-grid{
+    display:grid; grid-template-columns: minmax(280px, 0.85fr) 1fr;
+    gap: clamp(32px, 5vw, 70px); align-items:center;
+  }
+
+  /* Phone mockup — recreated from real app screenshot */
+  .darts-phone-wrap{ position:relative; display:grid; place-items:center; padding: 30px 0 50px }
+  .darts-phone{
+    position:relative; width: 300px; height: 620px;
+    background: #0a0a0d;
+    border:2px solid #2a2a30;
+    border-radius: 42px; padding: 10px 8px;
+    box-shadow:
+      0 60px 80px -40px oklch(0 0 0 / .85),
+      0 0 0 6px #050507,
+      inset 0 0 0 1px oklch(1 0 0 / .04);
+  }
+  .dp-screen{
+    position:relative; width:100%; height:100%; overflow:hidden;
+    border-radius: 32px;
+    background: #0a0a0d;
+    color:#fff;
+    display:flex; flex-direction:column;
+    padding: 14px 12px 12px;
+    font-family:'Space Grotesk', sans-serif;
+  }
+
+  /* Top bar: swap, vs, clock */
+  .dp-topbar{ display:grid; grid-template-columns: auto 1fr auto; align-items:center; gap:8px; padding-bottom:10px }
+  .dp-icobtn{
+    width:32px; height:32px; border-radius:10px;
+    background: #1a1a20; display:grid; place-items:center;
+    color:#e8e8ea;
+  }
+  .dp-icobtn svg{ width:16px; height:16px }
+  .dp-vs-pill{
+    justify-self:center;
+    display:inline-flex; align-items:center; gap:10px;
+    background:#1a1a20; padding:6px 14px; border-radius:99px;
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em;
+    color:#7a7a82;
+  }
+  .dp-vs-pill b{ color:#fff; font-weight:700 }
+
+  /* Player cards */
+  .dp-cards{ display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:6px }
+  .dp-card{
+    border-radius: 16px; padding: 16px 12px 14px;
+    background: #15151a;
+    display:flex; flex-direction:column; min-height:230px;
+  }
+  .dp-card.dp-active{ background: var(--yellow); color:#0a0a0d }
+  .dp-card-head{ display:flex; align-items:center; gap:6px; font-family:'Archivo Black', sans-serif; font-size:18px; letter-spacing:.04em; color:#9a9aa0 }
+  .dp-card.dp-active .dp-card-head{ color:#0a0a0d }
+  .dp-star{ font-size:13px }
+  .dp-card-score{
+    font-family:'Archivo Black', sans-serif;
+    font-size: 64px; line-height:1; letter-spacing:-.04em;
+    margin: auto 0; color:#e8e8ea;
+  }
+  .dp-card.dp-active .dp-card-score{ color:#0a0a0d }
+  .dp-card-throws{
+    align-self:center;
+    background: oklch(0.78 0.16 88 / .25);
+    color: var(--yellow);
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.14em;
+    padding: 4px 10px; border-radius:99px;
+    margin-top: 4px;
+  }
+  .dp-card.dp-active .dp-card-throws{ background: oklch(0 0 0 / .12); color:#0a0a0d }
+  .dp-card-avg{
+    margin-top:10px; padding-top:10px;
+    border-top:1px solid oklch(1 0 0 / .08);
+    display:flex; justify-content:space-between;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.14em;
+    color:#7a7a82;
+  }
+  .dp-card.dp-active .dp-card-avg{ border-top-color: oklch(0 0 0 / .15); color:#0a0a0d }
+
+  /* Throw history */
+  .dp-history{ margin-top:14px; padding: 0 4px }
+  .dp-hist-row{
+    display:grid; grid-template-columns: 1fr auto 1fr;
+    align-items:center; padding: 10px 0;
+    border-bottom: 1px solid oklch(1 0 0 / .06);
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:700;
+    color:#fff;
+  }
+  .dp-hist-row:last-child{ border-bottom:0 }
+  .dp-hist-row .l{ text-align:center }
+  .dp-hist-row .r{ text-align:center }
+  .dp-hist-row .n{
+    width:24px; height:24px; border-radius:99px;
+    background:#1a1a20; display:grid; place-items:center;
+    font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:.06em;
+    color:#7a7a82; font-weight:500;
+  }
+
+  /* Input pill (#4) */
+  .dp-input-row{ display:grid; grid-template-columns: auto 1fr auto; align-items:center; gap:8px; margin-top:14px; padding: 0 4px }
+  .dp-input-side{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em; color:#7a7a82 }
+  .dp-input-pill{
+    background:#1a1a20; height:38px; border-radius:10px;
+    display:grid; place-items:center;
+    font-family:'JetBrains Mono', monospace; font-size:13px; color:#5a5a62;
+    font-style: italic;
+  }
+
+  /* Keypad */
+  .dp-keypad{ display:grid; grid-template-columns: auto 1fr 1fr 1fr auto; gap:6px; margin-top:8px; padding: 0 4px }
+  .dp-k-side{
+    font-family:'Space Grotesk', sans-serif; font-size:14px; font-weight:600;
+    color:#7a7a82; display:grid; place-items:center;
+    min-height: 38px;
+  }
+  .dp-k{
+    background:#15151a; border:0; cursor:pointer;
+    color:#fff; font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:15px; border-radius:10px; padding: 9px 0;
+  }
+  .dp-k.dp-k-yel{ background: var(--yellow); color:#0a0a0d; display:grid; place-items:center }
+
+  .darts-phone-shadow{
+    position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
+    width:74%; height:24px; border-radius:50%;
+    background: radial-gradient(closest-side, oklch(0 0 0 / .55), transparent 75%);
+    filter: blur(6px); z-index:-1;
+  }
+
+  .darts-tag{
+    position:absolute; padding: 7px 13px; border-radius:99px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+    border: 1px solid; background: oklch(0.14 0.008 50 / .85); backdrop-filter: blur(6px);
+    box-shadow: 0 12px 24px -12px oklch(0 0 0 / .6);
+  }
+  .darts-tag-1{ top: 8%; right: 0%; color: var(--yellow); border-color: oklch(0.86 0.14 90 / .6); transform: rotate(4deg) }
+  .darts-tag-2{ bottom: 14%; left: 0; color: #fff; border-color: oklch(1 0 0 / .35); transform: rotate(-5deg) }
+
+  /* Right column */
+  .darts-eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color: var(--yellow); margin-bottom: 18px }
+  .darts-h{ font-family:'Archivo Black', sans-serif; font-size: clamp(56px, 7vw, 96px); line-height:.92; letter-spacing:-.03em; text-transform:uppercase; color: var(--ink); display:flex; flex-direction:column; gap:0; margin-bottom: 22px }
+  .darts-h-accent{ color: var(--yellow); font-style: italic; font-family: 'Crimson Pro', serif; font-weight: 600; font-size: .92em; letter-spacing:-.01em }
+  .darts-lede{ font-family:'Crimson Pro', serif; font-size: 22px; line-height:1.4; color: var(--ink-2); margin-bottom: 32px; max-width: 30em; text-wrap: pretty }
+
+  .darts-feats{ list-style:none; display:grid; grid-template-columns: 1fr 1fr; gap: 20px 28px; margin-bottom: 38px; padding:0 }
+  .darts-feats li{ display:grid; grid-template-columns: auto 1fr; gap: 14px; align-items:start }
+  .df-num{ font-family:'JetBrains Mono', monospace; font-size:14px; font-weight:700; letter-spacing:.18em; color: var(--yellow); align-self:start; padding-top:1px }
+  .darts-feats li b{ display:block; font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px; color: var(--ink); margin-bottom:5px; letter-spacing:-.005em }
+  .darts-feats li span{ font-size:13px; color: var(--ink-2); line-height:1.55 }
+
+  .darts-cta-row{ display:flex; align-items:center; gap:20px; flex-wrap:wrap }
+  .darts-cta{
+    display:inline-flex; align-items:center; gap:14px;
+    padding: 14px 22px 14px 18px;
+    background: linear-gradient(135deg, oklch(0.20 0.01 90), oklch(0.12 0.01 90));
+    border: 1px solid oklch(0.86 0.14 90 / .5);
+    border-radius: 10px; color:#fff; text-decoration:none;
+    transition: transform .2s, box-shadow .2s, border-color .2s;
+    box-shadow: 0 18px 40px -22px oklch(0.86 0.14 90 / .6);
+  }
+  .darts-cta:hover{ transform: translateY(-2px); border-color: var(--yellow); box-shadow: 0 24px 50px -22px oklch(0.86 0.14 90 / .8) }
+  .darts-cta-ico{ display:grid; place-items:center; padding-right: 14px; border-right: 1px solid oklch(1 0 0 / .12) }
+  .darts-cta-txt{ display:flex; flex-direction:column; line-height:1.1 }
+  .darts-cta-txt small{ font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:.24em; text-transform:uppercase; color: oklch(0.78 0.05 90); margin-bottom: 3px }
+  .darts-cta-txt b{ font-family:'Archivo Black', sans-serif; font-size: 18px; letter-spacing:.01em; color:#fff }
+  .darts-meta{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color: var(--ink-3); line-height:1.7 }
+  .darts-meta a{ color: var(--yellow); text-decoration: underline; text-underline-offset: 3px }
+
+  @media (max-width: 900px){
+    .darts-grid{ grid-template-columns: 1fr; gap: 40px }
+    .darts-phone-wrap{ order: 2 }
+    .darts-pitch{ order: 1 }
+    .darts-feats{ grid-template-columns: 1fr }
+  }
+
+  /* ============== SOUND (rose) =============== */
+  .sound-row{ display:grid; grid-template-columns: 1fr 1fr; gap:24px }
+  /* ============== SOUND (rose) — vinyl-poster card on cream =============== */
+  .player{
+    position:relative; padding:34px; border:1px solid var(--line-2); border-radius:6px;
+    background:
+      radial-gradient(80% 100% at 0% 0%, oklch(0.30 0.06 20 / .35), transparent 60%),
+      linear-gradient(180deg, oklch(0.18 0.02 30), oklch(0.14 0.01 30));
+    overflow:hidden;
+    color: var(--ink);
+  }
+  .player-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:30px }
+  .player-head .now{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--rose); display:flex; align-items:center; gap:8px }
+  .player-head .now::before{ content:""; width:7px; height:7px; border-radius:99px; background:var(--rose); box-shadow:0 0 12px var(--rose) }
+  .player-head .time{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.06em; color:var(--ink-2) }
+  .player .now{ color:var(--rose) }
+  .player h3{ font-family:'Archivo Black', sans-serif; font-size:38px; line-height:.95; letter-spacing:-.02em; text-transform:uppercase; margin-bottom:6px }
+  .player p{ color:var(--ink-2); font-size:14px; margin-bottom:24px }
+
+  .wave{ display:flex; align-items:end; gap:3px; height:88px; margin-bottom:18px }
+  .wave i{ flex:1; background:linear-gradient(180deg, oklch(0.62 0.012 60), oklch(0.78 0.012 60)); border-radius:1px; display:block; transition: background .2s }
+  .wave i.played{ background:linear-gradient(180deg, var(--rose), oklch(0.48 0.20 22)) }
+  .wave i.cur{ background:var(--ink) }
+
+  .player-controls{ display:flex; align-items:center; gap:18px; margin-top:8px }
+  .pc-btn{
+    width:52px; height:52px; border-radius:99px; display:grid; place-items:center;
+    border:1px solid var(--line); color:var(--ink); transition: all .2s;
+  }
+  .pc-btn{ color:var(--ink); border-color:var(--line) }
+  .pc-btn.play{ background:var(--rose); border-color:var(--rose); color:#fff; width:60px; height:60px }
+  .pc-btn:hover{ transform:scale(1.04) }
+  .pc-meta{ margin-left:auto; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-3) }
+
+  .tracklist{ display:flex; flex-direction:column; gap:2px }
+  .track{
+    display:grid; grid-template-columns: 28px 1fr auto auto; gap:18px; align-items:center;
+    padding:16px 18px; border:1px solid var(--line-2); border-radius:4px;
+    background: oklch(0.15 0.01 60); cursor:pointer; transition: all .2s;
+  }
+  .track:hover{ border-color:var(--rose); background: oklch(0.18 0.02 30) }
+  .track.active{ border-color:var(--rose); background:linear-gradient(90deg, oklch(0.78 0.14 22 / .35), transparent) }
+  .track .n{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-3) }
+  .track.active .n{ color:var(--rose) }
+  .track .t{ font-family:'Archivo Black', sans-serif; text-transform:uppercase; font-size:16px; letter-spacing:-.01em }
+  .track .t small{ display:block; font-family:'Space Grotesk', sans-serif; font-weight:400; font-size:12px; color:var(--ink-3); text-transform:none; letter-spacing:0; margin-top:2px }
+  .track .dur{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-2) }
+  .track .ico{ width:30px; height:30px; border-radius:99px; border:1px solid var(--line); display:grid; place-items:center; color:var(--ink-2) }
+  .track.active .ico{ border-color:var(--rose); color:var(--rose) }
+
+  
+  /* ============== SOUND thumbnail grid =============== */
+  .sound-yt{ display:flex; flex-direction:column; gap:18px }
+  .yt-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:14px }
+  .yt-card{ display:flex; flex-direction:column; gap:10px; color:var(--ink); text-decoration:none; transition: transform .25s }
+  .yt-card:hover{ transform: translateY(-4px) }
+  .yt-thumb{
+    position:relative; aspect-ratio: 16/9; overflow:hidden;
+    border:1px solid var(--line-2); border-radius:4px;
+    background: oklch(0.20 0.01 30);
+    box-shadow: 0 12px 28px -18px oklch(0 0 0 / .6);
+  }
+  .yt-thumb img{ width:100%; height:100%; object-fit:cover; display:block; transition: transform .4s, filter .25s; filter: saturate(.92) }
+  .yt-card:hover .yt-thumb img{ transform: scale(1.04); filter: saturate(1.05) }
+  .yt-play{
+    position:absolute; left:50%; top:50%; transform: translate(-50%,-50%);
+    width:54px; height:54px; border-radius:99px;
+    background: var(--rose); color:#fff;
+    display:grid; place-items:center;
+    box-shadow: 0 8px 20px oklch(0 0 0 / .35);
+    transition: transform .25s, background .25s;
+  }
+  .yt-card:hover .yt-play{ transform: translate(-50%,-50%) scale(1.08); background: oklch(0.55 0.22 22) }
+  .yt-thumb-empty{
+    background:
+      repeating-linear-gradient(45deg, oklch(0.55 0.18 15 / .25) 0 2px, transparent 2px 14px),
+      linear-gradient(135deg, oklch(0.30 0.05 20), oklch(0.20 0.03 30));
+    display:grid; place-items:center; color: oklch(0.92 0.04 30);
+  }
+  .yt-more-label{ font-family:'Crimson Pro', serif; font-size:30px; font-style:italic; line-height:1.1; text-align:center }
+  .yt-more-label small{ display:block; font-size:11px; font-family:'JetBrains Mono', monospace; font-style:normal; letter-spacing:.22em; text-transform:uppercase; opacity:.65; margin-top:6px }
+  .yt-meta{ display:flex; align-items:baseline; gap:10px; font-size:13px }
+  .yt-num{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-3); border:1px solid var(--line); padding:3px 7px; border-radius:99px; flex-shrink:0 }
+  .yt-ttl{ color: var(--ink-2); line-height:1.3 }
+  .yt-note{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-3) }
+  .yt-note a{ color:var(--rose); text-decoration:underline; text-underline-offset:3px }
+  @media (max-width: 760px){ .yt-grid{ grid-template-columns: 1fr 1fr } }
+  @media (max-width: 480px){ .yt-grid{ grid-template-columns: 1fr } }
+
+  /* ============== TEXT (mix) =============== */
+  .text-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:24px; align-items:stretch }
+  @media (max-width: 1100px){ .text-grid{ grid-template-columns: 1fr 1fr } }
+  .essay{
+    border:1px solid var(--line-2); border-radius:4px; padding:34px;
+    display:flex; flex-direction:column; gap:18px; min-height:100%;
+    background: linear-gradient(180deg, oklch(0.17 0.01 60), oklch(0.13 0.01 60));
+    transition: all .25s;
+  }
+  .essay{ cursor:pointer }
+  .essay:hover{ border-color:var(--accent); transform:translateY(-3px) }
+  .essay .meta{ display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-3) }
+  .essay .meta .cat{ color:var(--accent) }
+  .essay h3{ font-family:'Fraunces', serif; font-weight:300; font-size:32px; line-height:1.05; letter-spacing:-.02em; color:var(--ink) }
+  .essay h3 em{ font-style:italic; color:var(--accent) }
+  .essay p{ color:var(--ink-2); font-size:14px; line-height:1.65; flex:1 }
+  .essay .read{ display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-2); padding-top:14px; border-top:1px solid var(--line-2) }
+  .essay .arrow{ font-family:'Archivo Black', sans-serif; font-size:18px }
+  .essay.y{ --accent: var(--yellow) }
+  .essay.r{ --accent: var(--rose) }
+  .essay.t{ --accent: var(--teal) }
+
+  /* pull quote */
+  .quote{
+    margin-top:60px; padding:60px 40px; border:1px solid var(--line-2);
+    border-radius:4px; background:
+      radial-gradient(60% 100% at 100% 0%, oklch(0.85 0.16 90 / .35), transparent 60%),
+      var(--bg-2);
+    display:grid; grid-template-columns: 100px 1fr auto; gap:32px; align-items:center;
+  }
+  .quote .mark{ font-family:'Fraunces', serif; font-size:120px; line-height:.7; color:var(--yellow); align-self:start }
+  .quote q{ font-family:'Fraunces', serif; font-style:italic; font-weight:300; font-size:32px; line-height:1.2; color:var(--ink); quotes:none }
+  .quote q::before, .quote q::after{ content:"" }
+  .quote .who{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-3); text-align:right }
+  .quote .who b{ display:block; color:var(--ink); margin-bottom:4px }
+
+  /* ============== ABOUT =============== */
+  .about-grid{ display:grid; grid-template-columns: 1fr 1.2fr; gap:80px; align-items:start }
+  .portrait{
+    aspect-ratio: 4/5; border-radius:4px;
+    position:relative; overflow:visible;
+    background: transparent;
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .portrait img{
+    width:100%; height:100%; object-fit:cover; object-position: center top; display:block;
+    filter: drop-shadow(0 30px 40px oklch(0.16 0.01 60 / .25));
+  }
+  .portrait .corner{ position:absolute; top:0; left:0; width:24px; height:24px; border-top:1px solid var(--rose); border-left:1px solid var(--rose); z-index:2 }
+  .portrait .corner.br{ top:auto; left:auto; bottom:0; right:0; border:0; border-bottom:1px solid var(--rose); border-right:1px solid var(--rose) }
+
+  .about-copy h2{
+    font-family:'Archivo Black', sans-serif; font-size: clamp(40px, 5vw, 80px); line-height:.95; letter-spacing:-.03em;
+    text-transform:uppercase; margin-bottom:30px;
+  }
+  .about-copy h2 .y{ color:var(--yellow) }
+  .about-copy h2 .r{ color:var(--rose) }
+  .about-copy h2 .t{ color:var(--teal) }
+  .about-copy h2 .ital{ font-family:'Fraunces', serif; font-style:italic; font-weight:300; color:var(--ink-2) }
+
+  .about-copy p{ color:var(--ink-2); font-size:16px; line-height:1.7; margin-bottom:18px; max-width:62ch }
+  .about-copy p strong{ color:var(--ink); font-weight:500 }
+
+  .facts{ margin-top:36px; display:grid; grid-template-columns: 1fr 1fr; gap:1px; background:var(--line-2); border:1px solid var(--line-2) }
+  .fact{ background: var(--bg); padding:22px 20px }
+  .fact b{ display:block; font-family:'Archivo Black', sans-serif; font-size:30px; line-height:1; margin-bottom:8px }
+  .fact span{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-3) }
+  .fact:nth-child(1) b{ color:var(--yellow) }
+  .fact:nth-child(2) b{ color:var(--rose) }
+  .fact:nth-child(3) b{ color:var(--teal) }
+  .fact:nth-child(4) b{ color:var(--ink) }
+
+  .contact-row{
+    margin-top:36px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    padding-top:30px; border-top:1px solid var(--line-2);
+  }
+  .contact-row .label{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-3); margin-right:8px }
+  .contact-row a{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.12em;
+    padding:10px 14px; border:1px solid var(--line); border-radius:99px; color:var(--ink-2);
+    display:inline-flex; align-items:center; gap:8px; transition: all .2s;
+  }
+  .contact-row a:hover{ color:var(--ink); border-color:var(--ink) }
+  .contact-row a.y:hover{ border-color:var(--yellow); color:var(--yellow) }
+  .contact-row a.r:hover{ border-color:var(--rose); color:var(--rose) }
+  .contact-row a.t:hover{ border-color:var(--teal); color:var(--teal) }
+
+  /* ============== FOOTER =============== */
+  footer{
+    padding:48px 40px 40px; border-top:1px solid var(--line);
+    display:grid; grid-template-columns: auto 1fr auto; gap:24px; align-items:center;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-3);
+  }
+  footer .right{ text-align:right }
+  footer a{ color:var(--ink-2) }
+  footer a:hover{ color:var(--ink) }
+
+
+  /* ============================================================
+     RESPONSIVE — 360 px kuni 1920 px
+     Breakpoint-id:
+       1280px  suur lauaarvuti -> kompaktne lauaarvuti
+       1100px  tahvelarvuti maastik / vaike lauaarvuti
+        760px  tahvelarvuti portree
+        600px  suur mobiil
+        480px  vaike mobiil
+        360px  madalaim sihtmark
+     ============================================================ */
+
+  /* pildid skaleeruvad alati */
+  img { max-width: 100%; height: auto; display: block }
+
+  /* 1280 px */
+  @media (max-width: 1280px) {
+    .hero-strip {
+      left: 40px; right: 40px; bottom: 60px;
+      grid-template-columns: 1fr 1fr; gap: 32px;
+    }
+    .hero-strip .col:last-child { display: none }
+    .section-head { grid-template-columns: 60px 1fr auto }
+    .about-grid { gap: 48px }
+  }
+
+  /* 1100 px */
+  @media (max-width: 1100px) {
+    .nav { padding: 12px 20px; grid-template-columns: auto 1fr; flex-wrap: wrap }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end }
+    .side { display: none }
+
+    .hero-stage {
+      grid-template-columns: 1fr;
+      gap: 0;
+      padding: 96px 24px 32px;
+      min-height: auto;
+      align-items: start;
+    }
+    .hero-figure {
+      width: 100%;
+      max-width: 480px;
+      height: clamp(300px, 52vw, 500px);
+      margin: 0 auto;
+      order: 2;
+    }
+    .hero-figure img { width: 100%; height: 100%; object-fit: cover; object-position: center top }
+    .hero-left { order: 1 }
+    .hero-mast { font-size: clamp(48px, 11vw, 110px) }
+    .ed-label.tl { left: 24px; top: 72px }
+    .ed-label.tr { right: 24px; top: 72px }
+    .crop { display: none }
+    .issue-stamp { display: none }
+
+    .hero-strip {
+      position: relative;
+      left: auto; right: auto; bottom: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 28px;
+      padding: 24px 0;
+      border-top: 1px solid oklch(0.28 0.012 80 / .2);
+      margin-top: 28px;
+    }
+    .hero-strip .col { min-width: 140px; flex: 1 }
+    .hero-strip .col p { color: var(--ink-2) }
+    .hero-strip .col h6 { color: var(--ink-3) }
+    .hero-strip .meta { display: flex; flex-wrap: wrap; gap: 8px 20px }
+
+    section.block { padding: clamp(52px, 9vw, 100px) 24px }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: flex-end;
+    }
+    .sh-num { border-right: none; padding-right: 0 }
+    .sh-title { font-size: clamp(42px, 10vw, 90px) }
+
+    .pictures-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
+      gap: 10px;
+    }
+    .pic.tall { grid-row: auto }
+    .pictures-grid .pic { height: clamp(160px, 32vw, 280px) }
+
+    .darts-grid { grid-template-columns: 1fr; gap: 40px }
+    .darts-phone-wrap { order: 2 }
+    .darts-pitch { order: 1 }
+    .darts-feats { grid-template-columns: 1fr }
+
+    .sound-row { grid-template-columns: 1fr }
+
+    .text-grid { grid-template-columns: 1fr 1fr }
+
+    .quote {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 40px 28px;
+    }
+    .quote .mark { font-size: 80px; line-height: .8 }
+    .quote q { font-size: clamp(22px, 4vw, 32px) }
+    .quote .who { text-align: left }
+
+    .about-grid { grid-template-columns: 1fr; gap: 36px }
+    .portrait { max-width: 360px }
+    .facts { grid-template-columns: 1fr 1fr }
+
+    footer {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 36px 24px 32px;
+    }
+    footer .right { text-align: left }
+  }
+
+  /* 760 px */
+  @media (max-width: 760px) {
+
+
+    .hero-mast { font-size: clamp(44px, 12vw, 96px) }
+    .hero-strip { flex-direction: column; gap: 12px }
+    .hero-strip .col { min-width: 0; width: 100% }
+
+    .sh-title { font-size: clamp(38px, 11vw, 76px) }
+    .pictures-grid .pic { height: clamp(150px, 30vw, 240px) }
+
+    .darts-phone { width: 270px; height: 560px }
+
+    .text-grid { grid-template-columns: 1fr }
+    .essay { padding: 24px }
+    .essay h3 { font-size: 26px }
+
+    .quote { padding: 32px 22px }
+    .quote q { font-size: 22px }
+
+    .about-copy h2 { font-size: clamp(34px, 9vw, 64px) }
+  }
+
+  /* 600 px */
+  @media (max-width: 600px) {
+    .nav { padding: 12px 16px }
+    .logo { font-size: 18px }
+    .logo small { display: none }
+
+    .nav { padding: 10px 14px }
+    .nav-links a { font-size: 10px; padding: 7px 10px; letter-spacing: .14em }
+    .logo small { display: none }
+    .hero-stage { padding: 76px 16px 24px }
+    .hero-mast { font-size: clamp(38px, 13vw, 72px) }
+    .hero-figure { height: clamp(260px, 58vw, 380px) }
+    .ed-label { display: none }
+
+    section.block { padding: 48px 16px }
+
+    .sh-title { font-size: clamp(36px, 12vw, 64px) }
+    .section-head { margin-bottom: 32px; padding-bottom: 16px }
+
+    .pictures-grid { grid-template-columns: 1fr; gap: 8px }
+    .pictures-grid .pic { height: clamp(200px, 52vw, 340px) }
+
+    .darts-phone-wrap { padding: 20px 0 36px }
+    .darts-phone { width: min(280px, 82vw) }
+    .darts-feats { gap: 12px 0 }
+    .darts-cta-row { flex-direction: column; align-items: flex-start }
+
+    .yt-grid { grid-template-columns: 1fr 1fr }
+
+    .essay { padding: 20px }
+
+    .quote { padding: 28px 18px }
+    .quote .mark { font-size: 56px }
+
+    .about-grid { gap: 28px }
+    .portrait { max-width: 280px }
+    .contact-row { gap: 8px }
+
+    footer { padding: 28px 16px 24px }
+  }
+
+  /* 480 px */
+  @media (max-width: 480px) {
+    .hero-stage { padding: 68px 14px 20px }
+    .hero-mast { font-size: clamp(32px, 13.5vw, 58px) }
+    .typed-slot { min-width: 3.5ch }
+
+    .sh-title { font-size: clamp(30px, 13vw, 52px) }
+
+    .pictures-grid .pic { height: clamp(170px, 54vw, 290px) }
+
+    .darts-phone { width: min(260px, 80vw) }
+    .dp-card-score { font-size: 48px }
+    .dp-card { min-height: 190px }
+
+    .yt-grid { grid-template-columns: 1fr }
+
+    .essay h3 { font-size: 22px }
+
+    .quote q { font-size: 19px }
+    .quote .mark { font-size: 48px }
+
+    .facts { grid-template-columns: 1fr }
+    .fact { padding: 16px }
+
+    .sm-panel { padding: 36px 18px 44px }
+  }
+
+  /* 360 px */
+  @media (max-width: 360px) {
+    .nav { padding: 10px 12px }
+    .logo { font-size: 16px }
+
+
+    .hero-stage { padding: 60px 12px 16px }
+    .hero-mast { font-size: clamp(28px, 14vw, 48px) }
+
+    section.block { padding: 36px 12px }
+    .sh-title { font-size: clamp(26px, 14vw, 44px) }
+
+    .pictures-grid .pic { height: clamp(150px, 55vw, 240px) }
+
+    .darts-phone { width: min(240px, 88vw) }
+
+    .essay { padding: 16px }
+    .essay h3 { font-size: 20px }
+
+    .quote .mark { font-size: 40px }
+    .quote q { font-size: 17px }
+
+    .facts { grid-template-columns: 1fr }
+    .contact-row a { padding: 8px 10px; font-size: 10px }
+
+    footer { gap: 10px }
+  }
+
+  /* reveal on scroll */
+  .reveal{ opacity:0; transform:translateY(28px); transition: opacity .9s ease, transform .9s ease }
+  .reveal.in{ opacity:1; transform:none }
+
+  /* ============== STORY MODAL =============== */
+  .story-modal{ position:fixed; inset:0; z-index:200; display:none; align-items:center; justify-content:center; padding: 40px 20px }
+  .story-modal.open{ display:flex; animation: smIn .25s ease }
+  @keyframes smIn{ from{ opacity:0 } to{ opacity:1 } }
+  .sm-backdrop{ position:absolute; inset:0; background: oklch(0.06 0.005 60 / .82); backdrop-filter: blur(8px) }
+  .sm-panel{
+    position:relative; max-width: 760px; width:100%; max-height: 90vh; overflow:auto;
+    background: oklch(0.13 0.008 50);
+    border:1px solid var(--line-2); border-radius:6px;
+    padding: 56px clamp(28px, 5vw, 64px) 64px;
+    box-shadow: 0 60px 120px -40px oklch(0 0 0 / .9);
+    color: var(--ink);
+    animation: smPanelIn .35s cubic-bezier(.2,.7,.2,1);
+  }
+  @keyframes smPanelIn{ from{ opacity:0; transform: translateY(24px) scale(.98) } to{ opacity:1; transform:none } }
+  .sm-close{
+    position: absolute; top: 14px; right: 16px;
+    width: 40px; height: 40px; border-radius: 99px;
+    background: transparent; border: 1px solid var(--line-2);
+    color: var(--ink-2); font-size: 24px; line-height: 1; cursor: pointer;
+    display:grid; place-items:center; transition: background .2s, color .2s, border-color .2s;
+  }
+  .sm-close:hover{ background: var(--rose); border-color: var(--rose); color:#fff }
+  .sm-meta{ display:flex; gap: 18px; font-family:'JetBrains Mono', monospace; font-size: 10px; letter-spacing:.22em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 16px }
+  .sm-meta span:first-child{ color: var(--rose) }
+  .sm-head h2{
+    font-family:'Fraunces', serif; font-weight: 300;
+    font-size: clamp(30px, 4.2vw, 44px); line-height: 1.05; letter-spacing: -.02em;
+    color: var(--ink); margin-bottom: 28px; text-wrap: balance;
+  }
+  .sm-head h2 em{ font-style: italic; color: var(--rose) }
+  .sm-body{ font-family: 'Crimson Pro', serif; font-size: 19px; line-height: 1.7; color: oklch(0.86 0.012 60) }
+  .sm-body p{ margin-bottom: 1em }
+  .sm-body p:last-child{ margin-bottom: 0 }
+
+  body.sm-locked{ overflow: hidden }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <a href="#top" class="logo">
+    <span class="dot"></span>
+    <div>
+      IM<b>RE</b>
+      <small>Personal · MMXXVI</small>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#pictures" data-link="pictures"><span class="num">01</span>Pictures</a>
+    <a href="#code"     data-link="code"><span class="num">02</span>Code</a>
+    <a href="#sound"    data-link="sound"><span class="num">03</span>Sound</a>
+    <a href="#text"     data-link="text"><span class="num">04</span>Text</a>
+    <a href="#about"    data-link="about"><span class="num">05</span>About</a>
+  </div>
+
+</nav>
+
+<!-- ============ SIDE INDEX ============ -->
+<aside class="side">
+  <a href="#pictures" data-side="pictures">
+</a>
+  <a href="#code"     data-side="code">
+</a>
+  <a href="#sound"    data-side="sound">
+</a>
+  <a href="#text"     data-side="text">
+</a>
+  <a href="#about"    data-side="about">
+</a>
+</aside>
+
+<!-- ============ HERO ============ -->
+<header id="top" class="hero" data-section="top">
+
+  <div class="crop tl"></div>
+  <div class="crop tr"></div>
+  <div class="crop bl"></div>
+  <div class="crop br"></div>
+
+  <div class="issue-stamp">Issue <b>N° 01</b> &nbsp;—&nbsp; MMXXVI &nbsp;·&nbsp; Paide</div>
+
+  <div class="ed-label tl"><span class="num">A.01</span><span>The Self-Portfolio</span></div>
+  <div class="ed-label tr"><span class="num">Cover Story</span><span>Imre / 04 Disciplines</span></div>
+
+  <div class="hero-stage">
+
+    <!-- LEFT: masthead -->
+    <div class="hero-left">
+      <h1 class="hero-mast">
+        <span class="row r1">Some<span class="ital">times</span></span>
+        <span class="row r2">it&nbsp;is&nbsp;<span class="typed-slot"><span id="typed" class="yel">pictures</span><span class="caret-h" id="caretH"></span></span></span>
+        <span class="row r3"><span class="ital">— sometimes</span> <span class="outl">it&nbsp;isn't.</span></span>
+      </h1>
+    </div>
+
+    <!-- RIGHT: figure -->
+    <div class="hero-figure" id="heroFigure">
+      <img id="heroImg" src="14_1.jpg" alt="Imre — digital art portrait" />
+    </div>
+
+  </div>
+</header>
+
+<!-- ============ PICTURES ============ -->
+<section class="block" id="pictures" data-section="pictures">
+  <div class="container">
+    <header class="section-head sh-yellow reveal">
+      <div class="sh-num">— 01 / 05</div>
+      <h2 class="sh-title">Pictu<span class="accent">res</span>.</h2>
+      <div class="sh-tag">Foto · 2024 — 2026
+        <button id="picRefresh" class="pic-refresh" type="button" aria-label="Sega pildivalik">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+          <span>sega&nbsp;uuesti</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="pictures-grid reveal">
+      <article class="pic tall acc-y">
+        <div class="pic-ph"><img class="pic-img" alt="" loading="lazy" /></div>
+      </article>
+      <article class="pic acc-r">
+        <div class="pic-ph"><img class="pic-img" alt="" loading="lazy" /></div>
+      </article>
+      <article class="pic acc-t">
+        <div class="pic-ph"><img class="pic-img" alt="" loading="lazy" /></div>
+      </article>
+      <article class="pic acc-y">
+        <div class="pic-ph"><img class="pic-img" alt="" loading="lazy" /></div>
+      </article>
+      <article class="pic acc-r">
+        <div class="pic-ph"><img class="pic-img" alt="" loading="lazy" /></div>
+      </article>
+    </div>
+
+    <div class="pic-links reveal">
+      <a href="https://www.deviantart.com/fp" target="_blank" rel="noopener" class="pic-link">DeviantArt →</a>
+      <a href="https://stock.adobe.com/ee/contributor/212338557/Imre" target="_blank" rel="noopener" class="pic-link">Adobe Stock →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CODE ============ -->
+<section class="block alt" id="code" data-section="code">
+  <div class="container">
+    <header class="section-head sh-yellow reveal">
+      <div class="sh-num">— 02 / 05</div>
+      <h2 class="sh-title">Co<span class="accent">de</span>.</h2>
+      <div class="sh-tag">Android · Eesti keeles</div>
+    </header>
+
+    <div class="darts-grid reveal">
+      <!-- Phone mockup — Crazy Darts real screen -->
+      <div class="darts-phone-wrap">
+        <img src="teloof.jpeg" alt="Crazy Darts Pro ekraanipilt" style="width:100%;max-width:340px;height:auto;display:block;border-radius:36px;" />
+
+      </div>
+
+      <!-- Right column: pitch -->
+      <div class="darts-pitch">
+        <div class="darts-eyebrow">— Mu uusim äpp</div>
+        <h3 class="darts-h">
+          <span>Crazy</span>
+          <span class="darts-h-accent">Darts.</span>
+        </h3>
+        <p class="darts-lede">
+          Skooride äpp noolemängijatele — kiire, mugav, eestikeelne. Ilma reklaamideta, ilma netiühenduseta, ilma jamata.
+        </p>
+
+        <ul class="darts-feats">
+          <li>
+            <span class="df-num">01</span>
+            <div>
+              <b>Kiire</b>
+              <span>Salvesta ühe puudutusega. Treeningmängud. 10 keelt. Undo / Redo.</span>
+            </div>
+          </li>
+          <li>
+            <span class="df-num">02</span>
+            <div>
+              <b>Mugav</b>
+              <span>501, 301, custom  — kõik populaarsemad mängud. Mitu mängijat, lõpetamise soovitused.</span>
+            </div>
+          </li>
+          <li>
+            <span class="df-num">03</span>
+            <div>
+              <b>Töötab ilma netita</b>
+              <span>Pubis, suvilas, garaažis. Andmed ei lähe kuhugi — kõik jääb sinu telefoni.</span>
+            </div>
+          </li>
+          <li>
+            <span class="df-num">04</span>
+            <div>
+              <b>Eesti keeles</b>
+              <span>Tehtud Eestis, Eesti noolemängijatele. Möla nagu nädalamängus.</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="darts-cta-row">
+          <a class="darts-cta" href="https://play.google.com/store/apps/details?id=com.kreisidarts.app" target="_blank" rel="noopener">
+            <span class="darts-cta-ico">
+              <svg width="22" height="24" viewBox="0 0 24 26" fill="none" aria-hidden="true">
+                <path d="M2 1.2v23.6c0 .7.7 1.1 1.3.7l16.4-11.8c.5-.4.5-1.1 0-1.5L3.3.5C2.7.1 2 .5 2 1.2z" fill="url(#g1)"/>
+                <defs>
+                  <linearGradient id="g1" x1="2" y1="0" x2="22" y2="26" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#00d4ff"/><stop offset=".5" stop-color="#5ce86b"/><stop offset="1" stop-color="#ffce3a"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
+            <span class="darts-cta-txt">
+              <small>Lae alla</small>
+              <b>Google Play</b>
+            </span>
+          </a>
+          <span class="darts-meta">
+            v1.9 · Android 7+<br/>
+            <a href="https://play.google.com/store/apps/details?id=com.kreisidarts.app" target="_blank" rel="noopener">play.google.com →</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SOUND ============ -->
+<section class="block" id="sound" data-section="sound">
+  <div class="container">
+    <header class="section-head sh-rose reveal">
+      <div class="sh-num">— 03 / 05</div>
+      <h2 class="sh-title">Sou<span class="accent">nd</span>.</h2>
+      <div class="sh-tag">Karvane õhtusöök</div>
+    </header>
+
+    <div class="sound-yt reveal">
+      <div class="yt-grid">
+        <div class="yt-card">
+          <div class="yt-thumb"><img src="KO_front_1.jpg" alt="Karvane Õhtusöök" loading="lazy" /></div>
+          <div class="yt-meta"><span class="yt-num">01</span><span class="yt-ttl">Karvane Õhtusöök · 01</span></div>
+        </div>
+        <div class="yt-card">
+          <div class="yt-thumb"><img src="2_ESILEHT_OIGE_2.jpg" alt="Karvane Õhtusöök 2" loading="lazy" /></div>
+          <div class="yt-meta"><span class="yt-num">02</span><span class="yt-ttl">Karvane Õhtusöök · 02</span></div>
+        </div>
+        <a class="yt-card yt-more" href="https://www.youtube.com/playlist?list=PLiWaUpaPHXYZeseQ8tq9uazMQVyUdMXaI" target="_blank" rel="noopener">
+          <div class="yt-thumb yt-thumb-empty">
+            <span class="yt-more-label">+96 lugu<br/><small>kogu pleilist</small></span>
+          </div>
+          <div class="yt-meta"><span class="yt-num">→</span><span class="yt-ttl">Ava kogu pleilist YouTube'is</span></div>
+        </a>
+      </div>
+      <p class="yt-note">Pleilist · <a href="https://www.youtube.com/playlist?list=PLiWaUpaPHXYZeseQ8tq9uazMQVyUdMXaI" target="_blank" rel="noopener">98 lugu YouTube'is →</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TEXT ============ -->
+<section class="block alt" id="text" data-section="text">
+  <div class="container">
+    <header class="section-head sh-mix reveal">
+      <div class="sh-num">— 04 / 05</div>
+      <h2 class="sh-title">Te<span class="accent" style="color:var(--yellow)">x</span><span class="accent" style="color:var(--rose)">t</span>.</h2>
+      <div class="sh-tag">Esseed · Märkmed · Pikemad lood</div>
+    </header>
+
+    <div class="text-grid reveal">
+      <article class="essay y" data-story="lugu1" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
+        <h3>Karu, <em>valvurimutt</em> ja muuseumikuumus</h3>
+        <p>Triibuliste trakspükstega karu sõidab kolmerattalise jalgrattaga ümber maja ja mõmiseb tähtsalt. Muuseumis oli palav. Valvurimutt kardab külma ja kütab nigu pöörane…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
+      <article class="essay r" data-story="lugu2" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
+        <h3>Vikerkaar, <em>hiir</em> ja simsalabim</h3>
+        <p>Puhub varba peale ja lausub paar nõiasõna. Kapi alt tuleb valges kitlis hiir, prillid ninal ja stetoskoop ümber kaela. Raputab haigele kohale rohelist pulbrit ja jala ümber tekib vikerkaar…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
+      <article class="essay t" data-story="lugu3" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>5 min lugemist</span></div>
+        <h3>Onuhelejakajakõlar ja <em>näkkide püük</em></h3>
+        <p>Ennemuiste elas ühes Rõuge järves suur ja väga vana kala, keda ümbruskonna rahvas kutsus Onuhelejakajakõlariks. Ükskord sõitnud järvest üks rätsep jalgrattaga mööda…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
+      <article class="essay y" data-story="lugu4" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>3 min lugemist</span></div>
+        <h3>Kärbes <em>Voldemar</em> ja Brunhilda</h3>
+        <p>Vaatab aknalaua alla. Seal on väike majake, korsten tossab ja aias mängivad kärbselapsed Pipi mängu. Sitikad märkavad mind, jooksevad suure kisaga majja ning uks tõmmatakse prõmmdi kinni…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
+      <article class="essay r" data-story="lugu5" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
+        <h3>Vapper <em>räimerull</em></h3>
+        <p>Vapper räimerull ärkas oma plastikust voodis ja hõõrus uniselt silmi. Ümberringi oli tühjus. "Kuhu kõik on kadunud?", mõtles ta ja tõusis istukile. Ta pühkis põlvedelt sibulapuru…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
+      <article class="essay t" data-story="lugu6" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
+        <h3>Mis juhtub kui <em>juustu</em> pubisse kaasa võtta</h3>
+        <p>Kõik käivad tasku kallal miskipärast ja laud on juustupuru täis. Kui Rafik tuleb, siis visatakse juustukera üle aia ja kõik vaatavad süütute silmadega otsa. Aia tagant tuleb nördinud kodanik, suur sinine muhk peas…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
+      <article class="essay y" data-story="lugu7" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>2 min lugemist</span></div>
+        <h3>Sekretär ja <em>sibulahirm</em></h3>
+        <p>"TRA!" röögatas sekretär ja vandus pikalt ning filigraanselt vene keeles. Kabinettides saabus haudvaikus, kuulda oli ainult vaikset tilkumist raamatupidaja laua alt — pensionieelikust memmeke oli vaga ja pelglik inimene ning ehmus kergesti…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+
+      <article class="essay r" data-story="lugu8" tabindex="0">
+        <div class="meta"><span class="cat">Lugu</span><span>5 min lugemist</span></div>
+        <h3>Trussilla, <em>härra Vorst</em> ja doktor Oz</h3>
+        <p>Maasikas lebas raugelt köögilaual ning uudistas ümbrust. Kõik oli nagu tavaliselt — banaanikleepekatega kaetud külmkapp undas vaikselt, seinakell keerutas eri mõõtu kätega ja koorimise eest peitu pugenud kartul piilus kapi alt oma nööpsilmadega arglikult välja…</p>
+        <div class="read"><span>03 · 2026</span><span class="arrow">→</span></div>
+      </article>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- Story modal -->
+<div id="storyModal" class="story-modal" aria-hidden="true" role="dialog">
+  <div class="sm-backdrop" data-close></div>
+  <article class="sm-panel">
+    <button class="sm-close" type="button" data-close aria-label="Sulge">×</button>
+    <header class="sm-head">
+      <div class="sm-meta"><span id="smCat">Lugu</span><span id="smDate">03 · 2026</span></div>
+      <h2 id="smTitle"></h2>
+    </header>
+    <div class="sm-body" id="smBody"></div>
+  </article>
+</div>
+
+<!-- ============ ABOUT ============ -->
+<section class="block" id="about" data-section="about">
+  <div class="container">
+    <header class="section-head sh-teal reveal" style="margin-bottom:80px">
+      <div class="sh-num">— 05 / 05</div>
+      <h2 class="sh-title">Abo<span class="accent">ut</span>.</h2>
+      <div class="sh-tag">Kes · Kus · Miks</div>
+    </header>
+
+    <div class="about-grid reveal">
+      <div class="portrait">
+        <div class="corner"></div>
+        <div class="corner br"></div>
+        <img id="aboutImg" src="14_2.jpg" alt="Imre — digital art portrait" />
+      </div>
+
+      <div class="about-copy">
+        <h2>
+          A person who <span class="ital">makes</span><br/>
+          <span class="y">pictures</span>, <span class="t">code</span>,<br/>
+          <span class="r">sound</span> <span class="ital">and</span> <span style="color:var(--ink-2)">text.</span>
+        </h2>
+
+        <p>Hi — I'm <strong>Imre</strong>. Before anything else, a few lines on why this page exists. I've spent <strong>thirty years</strong> building digital things, and slowly come around to the idea that one personal homepage with all of them on it is still a better way to show up than any channel on someone else's platform.</p>
+
+        <p>By day I build <strong>xml</strong>. In my spare time I make funny <strong>sounds</strong>. On weekends I walk around and making <strong>pictures</strong>. The four sections above are connected — a picture leads to a piece of text, the text points at a sound, the sound is hosted by code that uploads the next picture.</p>
+
+        <div class="facts">
+          <div class="fact"><b>30+</b><span>Years on the web</span></div>
+          <div class="fact"><b>02</b><span>Released albums</span></div>
+          <div class="fact"><b>SOME</b><span>web &amp; app projects</span></div>
+          <div class="fact"><b>∞</b><span>Pictures archived</span></div>
+        </div>
+
+        <div class="contact-row">
+          <span class="label">Kontakt —</span>
+          <a class="r" href="mailto:imre.sobnin@gmail.com">✉ imre.sobnin@gmail.com</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div>© MMXXVI · Imre</div>
+  <div style="text-align:center">Made by machines · No trackers · No cookies</div>
+  <div class="right">v0.9 · last build: <span id="buildTime">—</span></div>
+</footer>
+
+
+
+<script>
+  // ===== build time
+  document.getElementById('buildTime').textContent =
+    new Date().toLocaleDateString('et-EE', {year:'numeric', month:'2-digit', day:'2-digit'});
+
+
+
+
+  // ===== randomize portfolio pictures from uploads/
+  (function(){
+    const POOL = [
+      'uploads/1.jpeg','uploads/3.jpeg','uploads/6.jpeg',
+      'uploads/57.jpeg','uploads/62.jpeg','uploads/66.jpeg',
+      'uploads/69.jpeg','uploads/71.jpeg','uploads/73.jpeg',
+      'uploads/103.jpeg','uploads/107.jpeg','uploads/120.jpeg'
+    ];
+    function shuffle(){
+      const arr = POOL.slice();
+      for(let i = arr.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+    const imgs = document.querySelectorAll('.pic-img');
+    function applyPics(animate){
+      const arr = shuffle();
+      imgs.forEach((img, i) => {
+        const src = arr[i % arr.length];
+        if(animate){
+          img.classList.add('shuffling');
+          img.classList.remove('loaded');
+          setTimeout(() => {
+            img.addEventListener('load', () => {
+              img.classList.remove('shuffling');
+              img.classList.add('loaded');
+            }, { once:true });
+            img.src = src;
+          }, 240);
+        } else {
+          img.addEventListener('load', () => img.classList.add('loaded'), { once:true });
+          img.src = src;
+        }
+      });
+    }
+    applyPics(false);
+
+    const btn = document.getElementById('picRefresh');
+    if(btn){
+      btn.addEventListener('click', () => {
+        btn.classList.add('spinning');
+        applyPics(true);
+        setTimeout(() => btn.classList.remove('spinning'), 520);
+      });
+    }
+  })();
+
+  // ===== reveal on scroll
+  const io = new IntersectionObserver(ents => {
+    ents.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold:.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ===== scroll spy
+  const sections = [...document.querySelectorAll('[data-section]')];
+  const navLinks = [...document.querySelectorAll('[data-link]')];
+  const sideLinks= [...document.querySelectorAll('[data-side]')];
+  function setActive(name){
+    navLinks.forEach(a => a.classList.toggle('active', a.dataset.link === name));
+    sideLinks.forEach(a => a.classList.toggle('active', a.dataset.side === name));
+    /* v2: page is cream throughout, so keep nav in dark-ink mode always */
+    document.body.classList.add('over-hero');
+  }
+  // hero is in view at load
+  document.body.classList.add('over-hero');
+  const spy = new IntersectionObserver(ents => {
+    ents.forEach(e => { if(e.isIntersecting) setActive(e.target.dataset.section); });
+  }, { rootMargin: "-45% 0px -45% 0px" });
+  sections.forEach(s => spy.observe(s));
+
+  // ===== smooth-scroll for nav
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href').slice(1);
+      const t  = document.getElementById(id);
+      if(t){ e.preventDefault(); window.scrollTo({ top: t.offsetTop, behavior:'smooth' }); }
+    });
+  });
+
+  // ===== sound section uses YouTube embed; no JS needed
+
+  // ===== hero typing rotator
+  const typed = document.getElementById('typed');
+  const words = [
+    { w:'pictures', cls:'yel' },
+    { w:'code',     cls:'tea' },
+    { w:'sound',    cls:'ros' },
+    { w:'text',     cls:'yel' },
+    { w:'silence',  cls:'tea' },
+    { w:'all four', cls:'ros' },
+  ];
+  let wi = 0;
+  async function rotate(){
+    while(true){
+      const { w, cls } = words[wi];
+      typed.className = cls;
+      for(let i=0;i<=w.length;i++){ typed.textContent = w.slice(0,i); await new Promise(r=>setTimeout(r,55)); }
+      await new Promise(r=>setTimeout(r,1600));
+      for(let i=w.length;i>=0;i--){ typed.textContent = w.slice(0,i); await new Promise(r=>setTimeout(r,30)); }
+      await new Promise(r=>setTimeout(r,200));
+      wi = (wi + 1) % words.length;
+    }
+  }
+  rotate();
+
+  // ===== hero parallax on figure
+  const heroFig = document.getElementById('heroFigure');
+  window.addEventListener('scroll', () => {
+    const y = Math.min(window.scrollY, 800);
+    if(heroFig) heroFig.style.transform = `translateY(${y * 0.18}px) scale(${1 - y*0.00012})`;
+  }, { passive:true });
+
+  // ===== story modal =====
+  (function(){
+    const STORIES = {"lugu1":{"cat":"Lugu","date":"03 · 2026","acc":"y","title":"Karu, <em>valvurimutt</em> ja muuseumikuumus","body":["Triibuliste trakspükstega karu sõidab kolmerattalise jalgrattaga ümber maja ja mõmiseb tähtsalt.","Muuseumis oli palav.","Valvurimutt kardab külma ja kütab nigu pöörane","Isegi majas elavad sipelgad on ujumispükste väel","Apteeker ähib ja on näost punane kut saunaline","Riiulitel olevad rohud sulavad ning vikerkaarevärvilised nired segunevad helesiniseks jõeks","\"Ma hüppan pommi!\", karjub kapi otsa roninud suslik ja plärtsatab vette, nii et kõik ümberringi tilguvad","Karu läheb ümber maja juba seitsmendale ringile ja toasolijad veavad kihla, kaua ta veel jaksab","Mutt ajab aga ahju üha uusi ning uusi haokubusid","Seinal olev termomeeter hakkab kuumusest vilistama ja hüppab ka vette","Basseinitäiest kildudest saab peale nukkumisfaasi kaleidoskoop.","Ja vettinud dokumentidest neile ümbris","Selja taga hüütakse teda Toruks","Kaleidoskoop on muuseumimaalima tibi","Lõpuks avaneb põrandas luuk ja vanapagan tuleb vaatama, mis pagana asi see üleval niimoodi kuumab","\"Jumal sind võtaks!\" ütleb ta valvurile ja viib ta ära enda juurde katlakütjaks"]},"lugu2":{"cat":"Lugu","date":"03 · 2026","acc":"r","title":"Vikerkaar, <em>hiir</em> ja simsalabim","body":["/puhub varba peale ja lausub paar nõiasõna/","/kapi alt tuleb valges kitlis hiir, prillid ninal ja stetoskoop ümber kaela/","/raputab haigele kohale rohelist pulbrit ja jala ümber tekib vikerkaar/","/valu kaob ja näriline kirjutab midagi paberile ning läheb minema/","/patsient krahmab paberitüki ning püüab uudishimuga võideldes lugeda/","/käekiri on kohutav nagu arstil ikka/","/keerab paberi vastu valgust tagurpidi ja korraga on kõik loetav/","/vaatab imestnult vikerkaart ja püüab hiirel sabast haarata/","/paberilt loeb kokku: simsalabim-abrakdabra/","See tähendab välismaa keeles \"Hoidke jalad soojas, pea külmas ja musitage oma armsamaid\""]},"lugu3":{"cat":"Lugu","date":"03 · 2026","acc":"t","title":"Onuhelejakajakõlar ja <em>näkkide püük</em>","body":["Ennemuiste elas ühes Rõuge järves suur ja väga vana kala, keda ümbruskonna rahvas kutsus Onuhelejakajakõlariks. Ükskord sõitnud järvest üks rätsep jalgrattaga mööda ja näinud seda vee-elukat ning kukkunud hirmuga otse vette ja vajunud põhja. Imelikul kombel saanud ta vee all hingata ja näinud seal hõbedast linna, mille kohal ujusid näkineiud kui linnud. Laisematel näkkidel olnud saba üleni vetikatesse kasvanud ja sarnanenud kaugelt vaadates lupjamise pintslitele. Seal kandsid näkid oma kamme ja peegleid ja telefone, nii et need üleüldse välja ei paistnud ja põrmugi neid ei seganud. Sellest tuligi ütlemine \"Pistis pintslisse\". Rätsepa aga aitas Onuhelejakajakõlar veest välja ning ta pajatas sellest imeloost möödaratsutanud printsile, kes küll seda üldse uskuda ei tahtnud.","\"Jeerum miuke valevorst!\", ütles ka hobune, kellel oli iga viivituse üle hea meel. Ei kiskunud teda üldse draakoni juurde sõitma ja seepärast istus ta maha, pakkus kõigile paberossi ja alustas käärmeistriga juttu.","\"Ise nägin, auväärsed, oma silmaga!\" vandus rätsep ja lõi risti ette. \"Kõngegu ma siinsamas, kui tõtt ei kõnele!\"","\"Et nagu linnud kohe?\" uuris hobune.","\"Tõsijutt! Laulsid kõik veel seda laulu \"Las laine möllab, torm!\" aga ühe teise laulu viisiga... vist oli Shannon\".","Prints vangutas pead ja puhus aegamisi suitsu sinava taeva poole.","\"Ma olen kuulnud talumehest, kes näki kinni püüdis ja nüüd see muneb talle iga päev ühe kuldmuna\"","\"Püüame me ka ühe kinni!\" Seda ütles hobune ja ta silmadesse tuli imelik läige. Südames oli ta tegelikult üks paras ahnepäts.","\"Kuidas?\", küsis kuningapoeg. \"Meil ei ole ei õnge ega võrku...\"","Hobune tõmbas vestitaskust granaadi ja hüpitas seda üles-alla.","\"Sellest peaks piisama küll\", ütles ta. \"A visaku keegi teine, mul pole ju käsi.\"","Kuna rätsep mainis mokaotsast, et ta olevat ükskord laadal ühe vana soldatiga mitu sõna juttu ajanud, siis lasti temal visata. Ta võttiski dramaatilise poosi sisse ja viskas pommi hirmsa plartsuga järve keskele. Kohe hakkas vesi kohisema ja välja ronis sinise silmaga Onuhelejakajakõlar. \"Misasja te siin teete, kuradi oinad???!!!\" karjus ta nördinult ja hõõrus uimega silma. \"Kas te ei tea, et prahti ei tohi järve loopida???\"","Seda nähes puges rätsep ruttu hobuse selja taha peitu, kes omakorda puges jälle printsi taha. Printsil polnud enam kuhugi pugeda. Ta vaatas piinlikult maha ja pomises \"Eeeee.... me siin.... näkki tahtsime püüda....\"","Kala vaatas teda põlglikult.","\"Splint tuleb ju enne granaadi viskamist välja tõmmata! Amatöörid!\"","Sülitas ja läks mulinal vee alla tagasi.","Kolmik vaatas nukralt virvendavat järvepinda.","\"Läks lörri me hea plaan\" sõnas prints. Rätsep, kellel oli märgades riietes külm hakanud, võttis püksid jalast ja hakkas neid välja väänama, kui hobune hiilis talle selja tagant ligi ja lükkas ta järve.","\"Püüame hoopis elussöödaga!\" ütles ta innukalt, \"Näkkidele meeldivad paljad mehed, nad ronivad kohe välja vaatama!\"","\"Appi! Upun!!!\" kisendas rätsep ja sumas vees, sai siis aru, et vesi on ainult rinnuni ja solberdas nördinult kalda poole.","Veest tuli välja ka näost punane saarmas, väike roheline müts peas ja ahjuroop pihus.","\"Selline roppus!!! Inimesed! Kas teil on aru tossugi pealuu sees???\" kiljus ta ja vehkis roobiga. \"Ma siin panen parasjagu lapsi magama, kui akna taha ilmub üks paljas jõledus!\". Ta põrnitses tigedalt rätseppa. \"Vaat kui hammustan sult midagi ära!\"","Nõelakuningas sai järvest välja ja jooksis end kätega varjates põõsastesse peitu.","Näkid olid oma pead vees välja ajanud ja vaatasid suure huviga põõsa poole. Harva juhtus nii palju huvitavat ühel päeval ja nad olid väga uudishimulikud.","\"Mis sa hirnud,\" ütles prints hobusele ja hõõrus kannatada saanud peffi, \"proovi ise siukestega kõnelda, siis tead...\"","Hobune pudistas läbi naermise \"Mis me nüüd siis teeme, oo vapper kangelane?\" ja kõkutas edasi.","Prints vaatas teda pahakspanevalt ja sõnas \"Vat nüüd läheme Lohega võitlema!\"","\"Jälle? Alles me käisime... saba siiamaani kõrbenud.\"","\"Kuningapojad PEAVAD lohega taplema, nii on ette nähtud\" seletas prints ja ohkas. Ei meeldinud tallegi tegelikult selline asjade korraldus.","Pealekauba oli lohe väga rumal ja haises väävli järgi, nii et pärast tuli nii ennast kui hobust mitu korda pesta.","Hobune raputas pead.","\"Mina küll ei tule, mis mul mingi sisalikuga asja? Las puhub tuld ja sööb need paar neitsit, mind ta ei sega.\"","\"Aga kuidas ma siis sinna koopa juurde saan?\"","\"Võta takso\"","\"Hea et veel bussiga ei käsi sõita\"","\"A mis bussilgi viga? See ei maksa ju midagi, kui kohalik elanik oled\"","\"Mul pole rohelist kaarti\"","\"Jobu\"","\"Ise oled!\"","\"Ok, ma viin su sinna aga lähedale ei tule\"","\"Hea küll\"","/kappavad lohekoopa poole/"]},"lugu4":{"cat":"Lugu","date":"03 · 2026","acc":"y","title":"Kärbes <em>Voldemar</em> ja Brunhilda","body":["/vaatab aknalaua alla/","/seal on väike majake, korsten tossab ja aias mängivad kärbselapsed Pipi mängu/","/põrnitseb jahmunult seda pilti/","/sitikad märkavad mind, jooksevad suure kisaga majja ning uks tõmmatakse prõmmdi kinni/","/suured liitsilmad piiluvad aknast/","/\"Uhh! nägid miuke???\", ütleb üks/","/\"Koletis!\", noogutab teine/","/Kardin tõmmatakse aknale kõrinal ette ja majast kostub muusika/","/Five Finger Death Punch - Wash It All Away/","/noogutan tunnustavalt/","/võtan plastmassist ämbliku ja hiilin maja juurde/","/koputan uksele/","/ämbliku nimi on Brunhilda ja tal on mummuline rätik peas/","/uksesilmast piilub keegi ja karjub \"Pane ruttu pada tulele, kui Brunhilda korstnast sisse hiilib, siis kukub vette ja keeb ära!\"/","/\"Ehhee, otsige lolli\" muigab ämblik ja võtab taskust võtme/","/Keerab ukse lukust lahti/","/Toas auravad laual kakaotassid ja mängib muusika aga pole hingelistki/","/Brunhilda teeb kaks sammu ja astub kolme jalaga põrandal laiali olevate legoklotside peale/","/\"Ai!!!! Sa vana....!!!\" kirub ta ning vaatab nördinult oma valusaid varbaid/","/Samal hetkel kukub korstnast alla pisike hunt ja otse patta/","/Kuna vesi on alles leige, siis ei juhtu temaga midagi/","/Ta sulistab rõõmsalt ja ujutab pisikest kollast kummist pardikest/","/\"Nüüd olen allveelaev!\" teatab ta ja sukeldub vee alla, ainult silmad jäävad välja ning ta sarnaneb karvase konnaga/"]},"lugu5":{"cat":"Lugu","date":"03 · 2026","acc":"r","title":"Vapper <em>räimerull</em>","body":["Vapper räimerull ärkas oma plastikust voodis ja hõõrus uniselt silmi. Ümberringi oli tühjus. \"Kuhu kõik on kadunud?\", mõtles ta ja tõusis istukile. Ta pühkis põlvedelt sibulapuru ning vaatas uurivalt nii kaugele kui silmad nägid. Ikka ei paistnud kedagi. \"Veider!\" pomises ta endamisi. \"Eile oli ju veel 6 rulli aga täna pole enam ühtegi...\". Ta tõusis asemelt, kammis saba sirgeks ja otsustas hakata rändrüütliks ning avastada maailma. Kõigepealt piilus ta hiiglasliku tiksuva äratuskella taha, siis vaatas sibulametsas rähklevaid putukaid ja lõpuks ronis külmkapi otsa - sealt nägi hästi kaugele. Eemalt paistis hõbedane supipott, kus maasikad hüppasid kompoti sees üles-alla ja kilkasid. Üks oli endale ette kleepinud tillioksast väikese habeme ja puristas vees nagu vetevana. Teised marjad põgenesid naerdes tema eest ja püüdsid suhkrust tehtud parvedel eemale purjetada. Räimerull võttis hambatiku odaks kätte ja hiilis kõrvaltuppa. Suur seiklus oli alanud."]},"lugu6":{"cat":"Lugu","date":"03 · 2026","acc":"t","title":"Mis juhtub kui <em>juustu</em> pubisse kaasa võtta","body":["Kõik käivad tasku kallal miskipärast ja laud on juustupuru täis","Kui Rafik tuleb, siis visatakse juustukera üle aia ja kõik vaatavad süütute silmadega otsa","Aia tagant tuleb nördinud kodanik, suur sinine muhk peas","Kõik kohalviibijad kinnitavad et see muhk oli juba enne peas ja mõned väidavad lause, et see muhk on juba sündimisest saadik olnud","Kodanik kukub märatsema ja ta tuleb sulgeda kemmergusse rahunema","Naabrite koer on samal ajal juustukera leidnud, selle pintslisse pistnud ja kiigub nüüd kõhu peal, pisikesed käpad õhus siblimas","keegi kaastundlik kodanik veeretab ta naabri ukse taha ja laseb kella","Naaber tuleb, vaatab pikalt koera, sülitab ning raputab pubi poole rusikat","\"Te kuramuse masuurikad!\", kisendab ta, \"Jälle on vaese loomaga inetut nalja tehtud! Et te lõhkeksite! Alles see oli, kui peni tuli koju, üleni roheliseks värvitud, selja peale papist uimed nööriga seotud ja kaelas silt kirjaga \"Näkineid\"\"."]},"lugu7":{"cat":"Lugu","date":"03 · 2026","acc":"y","title":"Sekretär ja <em>sibulahirm</em>","body":["\"TRA!\" röögatas sekretär ja vandus pikalt ning filigraanselt vene keeles.","Kabinettides saabus haudvaikus, kuulda oli ainult vaikset tilkumist raamatupidaja laua alt - pensionieelikust memmeke oli vaga ja pelglik inimene ning ehmus kergesti.","\"Issaristike, mis siis nüüd jälle lahti on?\" sosistasid võlgade väljapeksjad, suured ja tugevad mehed, kes ei peljanud vanakuradi endagagi rinda pista kuid retseptsionisti kartsid nemadki kui tuld.","\"Üleeile tuli kummist tennistes ja teesärgis, silmad põlesid peas ja nisuke hirmus pilt oli ihu peale kuuma rauaga põletatud et...! Õnneks sain vigastamatult mööda hiilida!\", kõneles hääle värinal kõige söekam projektijuht kaaslastele, kes kuulasid teda ammuli sui ning ei jõudnud ära imestada oma seltsilise vaprust.","Alles kolm kuud kontoris töötanud praktikant lõi risti ette ja püüdis end paberikorvi taha ära peita kuid seal olid ees juba neli autojuhti, nagu saarmad pallina üksteise kaisus.","\"KUI ma veel ühte sibulat siin majas näen, siis lasen teid kõiki oksa tõmmata!\", kostus eestoast ja tilkumine raamatupidajate juures muutus ühtlaseks pladinaks.","Ülemusele meenus kohe ununenud kood, ta avas seifi, ronis pimedasse sügavikku ja sulges enda järel ukse igaveseks."]},"lugu8":{"cat":"Lugu","date":"03 · 2026","acc":"r","title":"Trussilla, <em>härra Vorst</em> ja doktor Oz","body":["Maasikas lebas raugelt köögilaual ning uudistas ümbrust. Kõik oli nagu tavaliselt – banaanikleepekatega kaetud külmkapp undas vaikselt, seinakell keerutas eri mõõtu kätega ja koorimise eest peitu pugenud kartul piilus kapi alt oma nööpsilmadega arglikult välja.","Äkki peatus maasika pilk millelgi ebatavalisel. See lamas köögilaual, oli šokolaadipruun ja tema ümarat lihaselist torsot katsid krobelised armid. Ning see lõhn! Mmmmmmm...! See oli maskuliinne ja suitsune, kirbe ja magus ühekorraga. Maasikas ei saanud enam temalt pilku. Arglikult nihkus ta lähemale ja hingas sisse suure sõõmu kuuma aroomi.","\"Kes olete te, oo salapärane tundmatu? Maadeavastaja, lindprii või ehk isegi mässaja?\" Maasika fantaasia maalis pildi kauboist, kes ratsutab päikesetõusu poole, nahast mantel lehvib tuules, hobune korskab ja tantsiskleb preeriatolmus…","\"Mina olen härra Vorst\", katkestas tundmatu ta unelma. \"Suitsu Vorst\", täpsustas ta ning veeres viisakalt pisut lähemale.","\"Trussilla Rozenkranz!\", tutvustas maasikas ennast ja tegi kniksu. \"Mis toob teid siia, meie tagasihoidlikku agulituppa, härra Vorst?\", päris ta ja piidles häbelikult võõrast.","\"Ma töötan tsirkuses ja homme algab siin etendus!\", ütles vorst tähtsalt ja keerutas sõjakalt vuntse. \"Siis näitame igasugu vigureid ja dresseeritud kurki!!!\".","\"Issakene!\" väristas maasikas õlgu, \"mina küll pelgan! Kurgid pidid olema ju väga metsikud?\".","\"Nii ta on\", sõnas vorst. \"Eriti ohtlikud on hapukurgid. Kui neile selg keerata, siis kargavad kohe kallale! Mind on nad rünnanud lugematul arvul kordi.\" Vorst keeras end natuke, nii et tuli nähtavale ta pisut näritud külg. \"Vaadake ise, kui ei usu!\".","Maasikas uuris hammustusjälgi ja tundis et pea läheb vaatepildist uimaseks. Ruttu lehvitas ta endale lehtedega tuult ja toetas end vorsti najale.","\"Kas teil hakkas halb?\" uuris kurgitaltsutaja murelikult.","\"Pisut... täna on väga lämbe ilm…\" sosistas Trussilla.","\"Siis tuleb teid viivitamatult arstile näidata!\" otsustas lihatoode. \"Istuge mulle selga, ma viin teid kiirabisse!\"","Maasikas roniski ettevaatlikult vorsti turjale ja see kappas tuhatnelja elutuppa teleka juurde.","\"Ruttu doktor Oz, aidake meid!\" kisendas ta oma peenikese vorstihäälega. Teleka ekraan lõi helendama ja sealt paistis valges kitlis Dr. Oz, kes mugis saia ja kaks paksu teenrit lehvitasid talle jaanalinnusulgedest lehvikutega tuult.","\"Oi massa Oz, võlusilm vaatab jälle!\" hüüdis üks neist kohkunult ja näitas näpuga teleka poole. Doktor pühkis saiapuru sülest maha ja ütles leebelt: \"Minge ja puhake pisut, mu ustavad Polly ja Molly, saabunud on patsient, kelle elu on hädaohus!\".","\"Oi massa, kas te lõikate ta lõhki ja võtate kõhust välja hõbedase vändaga hakklihamasina nagu eelmine kord?\", päris Pollyks nimetatu õhinal.","\"Ei, mu laps!\", vastas arst. \"Hakklihamasina-tõbi on väga haruldane haigus ja ma kahtlen, kas minu silmad seda rohkem enam näevadki. Minge nüüd\".","Teenrid paterdasid minema ja doktor pööras oma lühinägelikud silmad tulijate poole.","\"Isand Vorst! Rõõm teid näha! Mis toob teid minu juurde? Mul on rohtusid igasuguseid, üleeile näiteks arstisin umbeläinud auguga makaroni ja minu juurest lahkudes oli ta terve kui purikas ning töötab nüüd miilitsana.\"","\"Preili Rozenkranz tundis peapööritust ja tõin ta teie hoole alla\", sõnas vorst. \"Ehk asi ei olegi nõnda tõsine, kuid minu mure on meeletu ja abi siiski vajalik!\", lausus ta ärevalt.","\"Tõesti-tõesti!\", ütles Oz. \"Õigeaegne arstiabi puudulikkus võib päädida letaalselt ja on seetõttu äärmiselt ebasoovitav\". Ta võttis taskust stetoskoobi ja kuulas tükk aega voodis lebava maasika hingetõmbeid. \"Tundub et lugu pole siiski hull, tegu on hariliku kevadise hüsteeriaga\", sõnas doktor lõpuks ja aitas pisut kahvatu marja taas püsti. \"Kirjutan teile välja meemassaaži ja piimavannid.\" sõnas ta hoolitsevalt.","\"Ooooo!\", rõõmustas maasikas, \"Siis ma olen nagu Anu Saagim!\".","Vorst noogutas nõusolevalt ja vaatas jumaldava pilguga maasikat. Nad andsid doktorile tänutäheks neli soldot ja läksid käsikäes metsa jalutama."]}};
+    const modal = document.getElementById('storyModal');
+    const titleEl = document.getElementById('smTitle');
+    const bodyEl = document.getElementById('smBody');
+    const catEl = document.getElementById('smCat');
+    const dateEl = document.getElementById('smDate');
+    const accentMap = { y: 'var(--yellow)', r: 'var(--rose)', t: 'var(--teal)' };
+
+    function open(id){
+      const s = STORIES[id]; if(!s) return;
+      titleEl.innerHTML = s.title;
+      bodyEl.innerHTML = s.body.map(p => '<p>' + p.replace(/</g,'&lt;').replace(/&lt;(\/?em)&gt;/g,'<$1>') + '</p>').join('');
+      catEl.textContent = s.cat;
+      dateEl.textContent = s.date;
+      const acc = accentMap[s.acc] || 'var(--rose)';
+      modal.style.setProperty('--accent', acc);
+      modal.querySelector('.sm-meta span:first-child').style.color = acc;
+      modal.querySelectorAll('h2 em, .sm-head h2 em').forEach(el => el.style.color = acc);
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+      document.body.classList.add('sm-locked');
+    }
+    function close(){
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+      document.body.classList.remove('sm-locked');
+    }
+    document.querySelectorAll('.essay[data-story]').forEach(card => {
+      card.addEventListener('click', () => open(card.dataset.story));
+      card.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); open(card.dataset.story); } });
+    });
+    modal.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', close));
+    document.addEventListener('keydown', e => { if(e.key === 'Escape' && modal.classList.contains('open')) close(); });
+  })();
+
+</script>
+
+</body>
+</html>
