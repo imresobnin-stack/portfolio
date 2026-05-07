@@ -1540,7 +1540,19 @@
   }
   rotate();
 
-  // ===== hero parallax on figure
+  // ===== hero padding-top = nav kõrgus + väike vaba ruum
+  (function(){
+    const nav = document.querySelector('.nav');
+    const stage = document.querySelector('.hero-stage');
+    if(!nav || !stage) return;
+    function adjustHero(){
+      const navH = nav.getBoundingClientRect().height;
+      const extra = window.innerWidth < 600 ? 16 : 24;
+      stage.style.paddingTop = (navH + extra) + 'px';
+    }
+    adjustHero();
+    window.addEventListener('resize', adjustHero);
+  })();
   const heroFig = document.getElementById('heroFigure');
   window.addEventListener('scroll', () => {
     const y = Math.min(window.scrollY, 800);
