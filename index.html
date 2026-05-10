@@ -1,9 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html lang="et">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>IMRE — Pictures · Code · Sound · Text </title>
+<title>Imre Sobnin — Pildid · Kood · Heli · Tekst</title>
+<meta name="description" content="Imre Sobnin — vabakutseline arendaja ja digitaalkunstnik Tallinnast. Rakendused, pildid, muusika ja lühijutud." />
+
+<!-- Open Graph -->
+<meta property="og:type"        content="website" />
+<meta property="og:url"         content="https://imresobnin-stack.github.io/portfolio/" />
+<meta property="og:title"       content="Imre Sobnin — Pildid · Kood · Heli · Tekst" />
+<meta property="og:description" content="Vabakutseline arendaja ja digitaalkunstnik Tallinnast. Rakendused, pildid, muusika ja lühijutud." />
+<meta property="og:image"       content="https://imresobnin-stack.github.io/portfolio/14.jpeg" />
+<meta property="og:locale"      content="et_EE" />
+
+<!-- Twitter/X Card -->
+<meta name="twitter:card"        content="summary_large_image" />
+<meta name="twitter:title"       content="Imre Sobnin — Pildid · Kood · Heli · Tekst" />
+<meta name="twitter:description" content="Vabakutseline arendaja ja digitaalkunstnik Tallinnast." />
+<meta name="twitter:image"       content="https://imresobnin-stack.github.io/portfolio/14.jpeg" />
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231a1610'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Georgia,serif' font-weight='700' font-size='20' fill='%23e8c547'>I</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet" />
@@ -748,6 +766,8 @@
   footer a:hover{ color:var(--ink) }
 
 
+  @keyframes spin{ to{ transform:rotate(360deg) } }
+
   /* ============================================================
      RESPONSIVE — 360 px kuni 1920 px
      Breakpoint-id:
@@ -1109,7 +1129,10 @@
       </div>
     </header>
 
-    <div class="pictures-grid reveal">
+    <div class="pictures-grid reveal" style="position:relative;">
+      <div id="picSpinner" style="position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:4px;">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style="animation:spin 1s linear infinite"><circle cx="18" cy="18" r="14" stroke="oklch(0.35 0.02 80)" stroke-width="3"/><path d="M18 4a14 14 0 0 1 14 14" stroke="var(--yellow)" stroke-width="3" stroke-linecap="round"/></svg>
+      </div>
       <article class="pic tall acc-y">
         <div class="pic-ph"><img class="pic-img" alt="" loading="lazy" /></div>
       </article>
@@ -1452,6 +1475,8 @@
     probeAll(CANDIDATES, found => {
       POOL = found;
       applyPics(false);
+      const spinner = document.getElementById('picSpinner');
+      if(spinner) spinner.style.display = 'none';
 
       // Klõpsul avab pildi suurelt — lightbox
       picImgs.forEach(img => {
